@@ -1,0 +1,3 @@
+com.xypai.system.api.factory.RemoteUserFallbackFactory
+com.xypai.system.api.factory.RemoteLogFallbackFactory
+com.xypai.system.api.factory.RemoteFileFallbackFactory

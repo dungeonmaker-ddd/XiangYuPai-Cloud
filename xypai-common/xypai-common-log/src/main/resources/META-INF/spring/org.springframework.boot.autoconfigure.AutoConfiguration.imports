@@ -1,0 +1,2 @@
+com.xypai.common.log.service.AsyncLogService
+com.xypai.common.log.aspect.LogAspect

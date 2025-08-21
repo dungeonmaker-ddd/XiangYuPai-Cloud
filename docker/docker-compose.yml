@@ -7,6 +7,9 @@ services:
       context: ./nacos
     environment:
       - MODE=standalone
+      - NACOS_AUTH_TOKEN=SecretKey012345678901234567890123456789012345678901234567890123456789
+      - NACOS_AUTH_IDENTITY_KEY=VGhpc0lzTXlDdXN0b21JZGVudGl0eUtleTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OQ==
+      - NACOS_AUTH_IDENTITY_VALUE=VGhpc0lzTXlDdXN0b21JZGVudGl0eVZhbHVlMDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5
     volumes:
       - ./nacos/logs/:/home/nacos/logs
       - ./nacos/conf/application.properties:/home/nacos/conf/application.properties
@@ -18,7 +21,7 @@ services:
       - xypai-mysql
   xypai-mysql:
     container_name: xypai-mysql
-    image: mysql:5.7
+    image: mysql:8.0
     build:
       context: ./mysql
     ports:
@@ -33,7 +36,8 @@ services:
       '--character-set-server=utf8mb4',
       '--collation-server=utf8mb4_unicode_ci',
       '--default-time-zone=+8:00',
-      '--lower-case-table-names=1'
+      '--lower-case-table-names=1',
+      '--default-authentication-plugin=mysql_native_password'
     ]
     environment:
       MYSQL_DATABASE: 'ry-cloud'

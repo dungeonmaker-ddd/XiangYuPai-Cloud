@@ -1,7 +1,5 @@
 package com.xypai.common.sensitive.config;
 
-import java.io.IOException;
-import java.util.Objects;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -12,6 +10,9 @@ import com.xypai.common.core.constant.UserConstants;
 import com.xypai.common.core.context.SecurityContextHolder;
 import com.xypai.common.sensitive.annotation.Sensitive;
 import com.xypai.common.sensitive.enums.DesensitizedType;
+
+import java.io.IOException;
+import java.util.Objects;
 
 /**
  * 数据脱敏序列化过滤

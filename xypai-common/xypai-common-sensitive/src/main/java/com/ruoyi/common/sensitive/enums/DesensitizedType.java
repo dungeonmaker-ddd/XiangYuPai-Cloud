@@ -1,7 +1,8 @@
 package com.xypai.common.sensitive.enums;
 
-import java.util.function.Function;
 import com.xypai.common.sensitive.utils.DesensitizedUtil;
+
+import java.util.function.Function;
 
 /**
  * 脱敏类型

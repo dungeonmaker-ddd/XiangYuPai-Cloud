@@ -1,11 +1,5 @@
 package com.xypai.auth.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
 import com.xypai.auth.form.LoginBody;
 import com.xypai.auth.form.RegisterBody;
 import com.xypai.auth.service.SysLoginService;
@@ -16,12 +10,22 @@ import com.xypai.common.security.auth.AuthUtil;
 import com.xypai.common.security.service.TokenService;
 import com.xypai.common.security.utils.SecurityUtils;
 import com.xypai.system.api.model.LoginUser;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * token 控制
  *
  * @author ruoyi
  */
+@Tag(name = "认证管理")
 @RestController
 public class TokenController {
     @Autowired
@@ -30,14 +34,16 @@ public class TokenController {
     @Autowired
     private SysLoginService sysLoginService;
 
+    @Operation(summary = "用户登录")
     @PostMapping("login")
-    public R<?> login(@RequestBody LoginBody form) {
+    public R<?> login(@Parameter(description = "登录信息") @RequestBody LoginBody form) {
         // 用户登录
         LoginUser userInfo = sysLoginService.login(form.getUsername(), form.getPassword());
         // 获取登录token
         return R.ok(tokenService.createToken(userInfo));
     }
 
+    @Operation(summary = "用户退出")
     @DeleteMapping("logout")
     public R<?> logout(HttpServletRequest request) {
         String token = SecurityUtils.getToken(request);
@@ -51,6 +57,7 @@ public class TokenController {
         return R.ok();
     }
 
+    @Operation(summary = "刷新令牌")
     @PostMapping("refresh")
     public R<?> refresh(HttpServletRequest request) {
         LoginUser loginUser = tokenService.getLoginUser(request);
@@ -62,8 +69,9 @@ public class TokenController {
         return R.ok();
     }
 
+    @Operation(summary = "用户注册")
     @PostMapping("register")
-    public R<?> register(@RequestBody RegisterBody registerBody) {
+    public R<?> register(@Parameter(description = "注册信息") @RequestBody RegisterBody registerBody) {
         // 用户注册
         sysLoginService.register(registerBody.getUsername(), registerBody.getPassword());
         return R.ok();

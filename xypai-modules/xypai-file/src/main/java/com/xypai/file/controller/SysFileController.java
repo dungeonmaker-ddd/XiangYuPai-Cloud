@@ -1,5 +1,13 @@
 package com.xypai.file.controller;
 
+import com.xypai.common.core.domain.R;
+import com.xypai.common.core.utils.StringUtils;
+import com.xypai.common.core.utils.file.FileUtils;
+import com.xypai.file.service.ISysFileService;
+import com.xypai.system.api.domain.SysFile;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,17 +15,13 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import com.xypai.common.core.domain.R;
-import com.xypai.common.core.utils.StringUtils;
-import com.xypai.common.core.utils.file.FileUtils;
-import com.xypai.file.service.ISysFileService;
-import com.xypai.system.api.domain.SysFile;
 
 /**
  * 文件请求处理
  *
  * @author ruoyi
  */
+@Tag(name = "文件管理")
 @RestController
 public class SysFileController {
     private static final Logger log = LoggerFactory.getLogger(SysFileController.class);
@@ -28,8 +32,9 @@ public class SysFileController {
     /**
      * 文件上传请求
      */
+    @Operation(summary = "文件上传")
     @PostMapping("upload")
-    public R<SysFile> upload(MultipartFile file) {
+    public R<SysFile> upload(@Parameter(description = "上传文件") MultipartFile file) {
         try {
             // 上传并返回访问地址
             String url = sysFileService.uploadFile(file);
@@ -46,8 +51,9 @@ public class SysFileController {
     /**
      * 文件删除请求
      */
+    @Operation(summary = "文件删除")
     @DeleteMapping("delete")
-    public R<Boolean> delete(String fileUrl) {
+    public R<Boolean> delete(@Parameter(description = "文件URL") String fileUrl) {
         try {
             if (!FileUtils.validateFilePath(fileUrl)) {
                 throw new Exception(StringUtils.format("资源文件({})非法，不允许删除。 ", fileUrl));

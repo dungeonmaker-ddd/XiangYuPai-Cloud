@@ -33,6 +33,7 @@
         <minio.version>8.2.2</minio.version>
         <poi.version>4.1.2</poi.version>
         <springdoc.version>2.6.0</springdoc.version>
+        <knife4j.version>4.5.0</knife4j.version>
         <transmittable-thread-local.version>2.14.4</transmittable-thread-local.version>
     </properties>
 
@@ -67,7 +68,14 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- Springdoc webmvc 依赖配置 -->
+            <!-- Knife4j OpenAPI3 Jakarta 依赖配置 -->
+            <dependency>
+                <groupId>com.github.xiaoymin</groupId>
+                <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
+                <version>${knife4j.version}</version>
+            </dependency>
+
+            <!-- Springdoc webmvc 依赖配置 (保持兼容) -->
             <dependency>
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>

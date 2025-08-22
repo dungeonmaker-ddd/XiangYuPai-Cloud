@@ -60,6 +60,12 @@
             <artifactId>xypai-api-system</artifactId>
         </dependency>
 
+        <!-- RuoYi Common Swagger -->
+        <dependency>
+            <groupId>com.xypai</groupId>
+            <artifactId>xypai-common-swagger</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

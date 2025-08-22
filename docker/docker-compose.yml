@@ -3,13 +3,14 @@ services:
   xypai-nacos:
     container_name: xypai-nacos
     image: nacos/nacos-server
+    restart: always
     build:
       context: ./nacos
     environment:
-      - MODE=standalone
-      - NACOS_AUTH_TOKEN=SecretKey012345678901234567890123456789012345678901234567890123456789
-      - NACOS_AUTH_IDENTITY_KEY=VGhpc0lzTXlDdXN0b21JZGVudGl0eUtleTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OQ==
-      - NACOS_AUTH_IDENTITY_VALUE=VGhpc0lzTXlDdXN0b21JZGVudGl0eVZhbHVlMDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5
+      MODE: standalone
+      NACOS_AUTH_TOKEN: SecretKey012345678901234567890123456789012345678901234567890123456789
+      NACOS_AUTH_IDENTITY_KEY: VGhpc0lzTXlDdXN0b21JZGVudGl0eUtleTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OQ==
+      NACOS_AUTH_IDENTITY_VALUE: VGhpc0lzTXlDdXN0b21JZGVudGl0eVZhbHVlMDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5
     volumes:
       - ./nacos/logs/:/home/nacos/logs
       - ./nacos/conf/application.properties:/home/nacos/conf/application.properties
@@ -22,6 +23,7 @@ services:
   xypai-mysql:
     container_name: xypai-mysql
     image: mysql:8.0
+    restart: always
     build:
       context: ./mysql
     ports:
@@ -45,6 +47,7 @@ services:
   xypai-redis:
     container_name: xypai-redis
     image: redis
+    restart: always
     build:
       context: ./redis
     ports:
@@ -53,6 +56,16 @@ services:
       - ./redis/conf/redis.conf:/home/xypai/redis/redis.conf
       - ./redis/data:/data
     command: redis-server /home/xypai/redis/redis.conf
+  xypai-sentinel:
+    container_name: xypai-sentinel
+    image: bladex/sentinel-dashboard:1.8.6
+    restart: always
+    ports:
+      - "8718:8718"
+    environment:
+      - JAVA_OPTS=-Dserver.port=8718 -Dcsp.sentinel.dashboard.server=localhost:8718 -Dproject.name=sentinel-dashboard -Dcsp.sentinel.api.port=8719
+    depends_on:
+      - xypai-nacos
   xypai-nginx:
     container_name: xypai-nginx
     image: nginx

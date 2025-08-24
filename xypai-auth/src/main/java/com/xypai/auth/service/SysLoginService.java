@@ -1,13 +1,10 @@
 package com.xypai.auth.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import com.xypai.common.core.constant.CacheConstants;
 import com.xypai.common.core.constant.Constants;
 import com.xypai.common.core.constant.SecurityConstants;
 import com.xypai.common.core.constant.UserConstants;
 import com.xypai.common.core.domain.R;
-import com.xypai.common.core.enums.UserStatus;
 import com.xypai.common.core.exception.ServiceException;
 import com.xypai.common.core.text.Convert;
 import com.xypai.common.core.utils.DateUtils;
@@ -18,90 +15,88 @@ import com.xypai.common.security.utils.SecurityUtils;
 import com.xypai.system.api.RemoteUserService;
 import com.xypai.system.api.domain.SysUser;
 import com.xypai.system.api.model.LoginUser;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 /**
- * 登录校验方法
+ * 管理端登录服务 - 严格的安全策略
  *
  * @author ruoyi
  */
 @Component
-public class SysLoginService {
-    @Autowired
-    private RemoteUserService remoteUserService;
+public class SysLoginService extends BaseAuthService {
 
-    @Autowired
-    private SysPasswordService passwordService;
-
-    @Autowired
-    private SysRecordLogService recordLogService;
-
-    @Autowired
-    private RedisService redisService;
+    private final RedisService redisService;
 
     /**
-     * 登录
+     * 构造器注入 - Spring Boot 3+ 推荐方式
+     *
+     * @Lazy 注解解决Feign客户端循环依赖问题
+     */
+    public SysLoginService(@Lazy RemoteUserService remoteUserService,
+                           SysPasswordService passwordService,
+                           SysRecordLogService recordLogService,
+                           RedisService redisService) {
+        super(remoteUserService, passwordService, recordLogService);
+        this.redisService = redisService;
+    }
+
+    /**
+     * 管理端登录 - 严格的安全策略
      */
     public LoginUser login(String username, String password) {
-        // 用户名或密码为空 错误
-        if (StringUtils.isAnyBlank(username, password)) {
-            recordLogService.recordLogininfor(username, Constants.LOGIN_FAIL, "用户/密码必须填写");
-            throw new ServiceException("用户/密码必须填写");
-        }
-        // 密码如果不在指定范围内 错误
+        // 基础参数验证
+        validateBaseParams(username, password);
+
+        // 管理端严格的密码策略
+        validatePasswordPolicy(username, password);
+
+        // 用户名长度验证
+        validateUsername(username);
+
+        // 管理端安全检查（IP黑名单等）
+        performSecurityChecks(username);
+
+        // 获取用户信息
+        LoginUser userInfo = getUserInfo(username);
+        SysUser user = userInfo.getSysUser();
+
+        // 检查用户状态
+        validateUserStatus(username, user);
+
+        // 验证密码
+        passwordService.validate(user, password);
+
+        // 记录登录成功
+        recordLogService.recordLogininfor(username, Constants.LOGIN_SUCCESS, "管理端登录成功");
+        recordLoginInfo(user.getUserId());
+
+        return userInfo;
+    }
+
+    @Override
+    protected void validatePasswordPolicy(String username, String password) {
+        // 管理端严格的密码策略
         if (password.length() < UserConstants.PASSWORD_MIN_LENGTH
                 || password.length() > UserConstants.PASSWORD_MAX_LENGTH) {
             recordLogService.recordLogininfor(username, Constants.LOGIN_FAIL, "用户密码不在指定范围");
             throw new ServiceException("用户密码不在指定范围");
         }
-        // 用户名不在指定范围内 错误
-        if (username.length() < UserConstants.USERNAME_MIN_LENGTH
-                || username.length() > UserConstants.USERNAME_MAX_LENGTH) {
-            recordLogService.recordLogininfor(username, Constants.LOGIN_FAIL, "用户名不在指定范围");
-            throw new ServiceException("用户名不在指定范围");
-        }
+    }
+
+    @Override
+    protected void performSecurityChecks(String username) {
         // IP黑名单校验
         String blackStr = Convert.toStr(redisService.getCacheObject(CacheConstants.SYS_LOGIN_BLACKIPLIST));
         if (IpUtils.isMatchedIp(blackStr, IpUtils.getIpAddr())) {
             recordLogService.recordLogininfor(username, Constants.LOGIN_FAIL, "很遗憾，访问IP已被列入系统黑名单");
             throw new ServiceException("很遗憾，访问IP已被列入系统黑名单");
         }
-        // 查询用户信息
-        R<LoginUser> userResult = remoteUserService.getUserInfo(username, SecurityConstants.INNER);
-
-        if (R.FAIL == userResult.getCode()) {
-            throw new ServiceException(userResult.getMsg());
-        }
-
-        LoginUser userInfo = userResult.getData();
-        SysUser user = userResult.getData().getSysUser();
-        if (UserStatus.DELETED.getCode().equals(user.getDelFlag())) {
-            recordLogService.recordLogininfor(username, Constants.LOGIN_FAIL, "对不起，您的账号已被删除");
-            throw new ServiceException("对不起，您的账号：" + username + " 已被删除");
-        }
-        if (UserStatus.DISABLE.getCode().equals(user.getStatus())) {
-            recordLogService.recordLogininfor(username, Constants.LOGIN_FAIL, "用户已停用，请联系管理员");
-            throw new ServiceException("对不起，您的账号：" + username + " 已停用");
-        }
-        passwordService.validate(user, password);
-        recordLogService.recordLogininfor(username, Constants.LOGIN_SUCCESS, "登录成功");
-        recordLoginInfo(user.getUserId());
-        return userInfo;
     }
 
-    /**
-     * 记录登录信息
-     *
-     * @param userId 用户ID
-     */
-    public void recordLoginInfo(Long userId) {
-        SysUser sysUser = new SysUser();
-        sysUser.setUserId(userId);
-        // 更新用户登录IP
-        sysUser.setLoginIp(IpUtils.getIpAddr());
-        // 更新用户登录时间
-        sysUser.setLoginDate(DateUtils.getNowDate());
-        remoteUserService.recordUserLogin(sysUser, SecurityConstants.INNER);
-    }
+
+
+
 
     public void logout(String loginName) {
         recordLogService.recordLogininfor(loginName, Constants.LOGOUT, "退出成功");

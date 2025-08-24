@@ -1,15 +1,14 @@
 package com.xypai.auth.service;
 
-import java.util.concurrent.TimeUnit;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import com.xypai.common.core.constant.CacheConstants;
 import com.xypai.common.core.constant.Constants;
 import com.xypai.common.core.exception.ServiceException;
 import com.xypai.common.redis.service.RedisService;
 import com.xypai.common.security.utils.SecurityUtils;
 import com.xypai.system.api.domain.SysUser;
+import org.springframework.stereotype.Component;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * 登录密码方法
@@ -18,15 +17,17 @@ import com.xypai.system.api.domain.SysUser;
  */
 @Component
 public class SysPasswordService {
-    @Autowired
-    private RedisService redisService;
 
-    private int maxRetryCount = CacheConstants.PASSWORD_MAX_RETRY_COUNT;
+    private final RedisService redisService;
+    private final SysRecordLogService recordLogService;
 
-    private Long lockTime = CacheConstants.PASSWORD_LOCK_TIME;
+    private final int maxRetryCount = CacheConstants.PASSWORD_MAX_RETRY_COUNT;
+    private final Long lockTime = CacheConstants.PASSWORD_LOCK_TIME;
 
-    @Autowired
-    private SysRecordLogService recordLogService;
+    public SysPasswordService(RedisService redisService, SysRecordLogService recordLogService) {
+        this.redisService = redisService;
+        this.recordLogService = recordLogService;
+    }
 
     /**
      * 登录账户密码错误次数缓存键名

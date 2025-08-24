@@ -2,6 +2,7 @@ package com.xypai.auth.service;
 
 import com.xypai.auth.config.TokenConfig;
 import com.xypai.auth.dto.LoginRequest;
+import com.xypai.auth.dto.SmsCodeRequest;
 import com.xypai.auth.dto.SmsLoginRequest;
 import com.xypai.auth.strategy.AuthStrategyFactory;
 import com.xypai.auth.strategy.AuthenticationStrategy;
@@ -121,18 +122,19 @@ public class AuthService {
     /**
      * 发送短信验证码
      */
-    public ResponseEntity<R<SmsCodeResponse>> sendSmsCode(String mobile, String clientType) {
+    public ResponseEntity<R<SmsCodeResponse>> sendSmsCode(SmsCodeRequest request) {
         try {
-            logger.info("📱 收到发送短信验证码请求 - 手机号: {}, 客户端: {}", mobile, clientType);
+            logger.info("📱 收到发送短信验证码请求 - 手机号: {}, 客户端: {}",
+                    request.mobile(), request.clientType());
 
             AuthenticationStrategy strategy = strategyFactory.getStrategy("app");
-            SmsCodeResponse response = strategy.sendSmsCode(mobile);
+            SmsCodeResponse response = strategy.sendSmsCode(request.mobile());
 
-            logger.info("📤 短信验证码发送成功 - 手机号: {}", mobile);
+            logger.info("📤 短信验证码发送成功 - 手机号: {}", request.mobile());
             return ResponseEntity.ok(R.ok(response));
 
         } catch (Exception e) {
-            logger.error("💥 发送短信验证码异常 - 手机号: {}", mobile, e);
+            logger.error("💥 发送短信验证码异常 - 手机号: {}", request.mobile(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(R.fail("发送失败，请稍后重试"));
         }

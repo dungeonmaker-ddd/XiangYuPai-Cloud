@@ -6,7 +6,9 @@ import com.xypai.common.core.constant.SecurityConstants;
 import com.xypai.common.core.domain.R;
 import com.xypai.common.core.enums.UserStatus;
 import com.xypai.common.core.exception.ServiceException;
+import com.xypai.common.core.utils.DateUtils;
 import com.xypai.common.core.utils.StringUtils;
+import com.xypai.common.security.utils.SecurityUtils;
 import com.xypai.system.api.RemoteUserService;
 import com.xypai.system.api.domain.SysUser;
 import com.xypai.system.api.model.LoginUser;
@@ -14,6 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+
+import java.util.Random;
 
 /**
  * APP端登录服务 - 相对宽松的验证策略
@@ -100,28 +104,34 @@ public class AppLoginService extends BaseAuthService {
             throw new ServiceException("验证码格式不正确");
         }
 
+        // TODO: 实际项目中需要验证短信验证码的有效性
+        // validateSmsCode(mobile, code);
+
         // 通过手机号获取用户信息
         R<LoginUser> userResult = remoteUserService.getUserInfo(mobile, SecurityConstants.INNER);
+
+        LoginUser userInfo;
         if (R.FAIL == userResult.getCode()) {
-            recordLogService.recordLogininfor(mobile, Constants.LOGIN_FAIL, "手机号未注册");
-            throw new ServiceException("手机号未注册");
-        }
+            // 手机号未注册，自动创建账号
+            logger.info("📱 检测到未注册手机号，开始自动创建账号 - 手机号: {}", mobile);
+            userInfo = autoCreateUserByMobile(mobile);
+            recordLogService.recordLogininfor(mobile, Constants.LOGIN_SUCCESS, "未注册手机号自动创建账号并登录成功");
+        } else {
+            userInfo = userResult.getData();
+            SysUser user = userInfo.getSysUser();
 
-        LoginUser userInfo = userResult.getData();
-        SysUser user = userInfo.getSysUser();
+            // 检查用户状态
+            if (UserStatus.DELETED.getCode().equals(user.getDelFlag())) {
+                recordLogService.recordLogininfor(mobile, Constants.LOGIN_FAIL, "账号已被删除");
+                throw new ServiceException("账号已被删除");
+            }
+            if (UserStatus.DISABLE.getCode().equals(user.getStatus())) {
+                recordLogService.recordLogininfor(mobile, Constants.LOGIN_FAIL, "账号已停用");
+                throw new ServiceException("账号已停用");
+            }
 
-        // 检查用户状态
-        if (UserStatus.DELETED.getCode().equals(user.getDelFlag())) {
-            recordLogService.recordLogininfor(mobile, Constants.LOGIN_FAIL, "账号已被删除");
-            throw new ServiceException("账号已被删除");
+            recordLogService.recordLogininfor(mobile, Constants.LOGIN_SUCCESS, "短信验证码登录成功");
         }
-        if (UserStatus.DISABLE.getCode().equals(user.getStatus())) {
-            recordLogService.recordLogininfor(mobile, Constants.LOGIN_FAIL, "账号已停用");
-            throw new ServiceException("账号已停用");
-        }
-
-        // 记录登录成功
-        recordLogService.recordLogininfor(mobile, Constants.LOGIN_SUCCESS, "短信验证码登录成功");
 
         return userInfo;
     }
@@ -218,5 +228,86 @@ public class AppLoginService extends BaseAuthService {
      */
     public void recordLogout(String username) {
         recordLogService.recordLogininfor(username, Constants.LOGOUT, "APP端退出成功");
+    }
+
+    /**
+     * 🚀 通过手机号自动创建用户账号
+     *
+     * @param mobile 手机号
+     * @return 创建的用户登录信息
+     */
+    private LoginUser autoCreateUserByMobile(String mobile) {
+        try {
+            // 生成默认用户名（mobile_xxxx格式，避免重复）
+            String username = generateUniqueUsername(mobile);
+
+            // 生成随机密码（用户可后续修改）
+            String randomPassword = generateRandomPassword();
+
+            // 创建用户对象
+            SysUser sysUser = new SysUser();
+            sysUser.setUserName(username);
+            sysUser.setNickName("手机用户" + mobile.substring(7)); // 使用手机号后4位作为昵称
+            sysUser.setPhonenumber(mobile);
+            sysUser.setPwdUpdateDate(DateUtils.getNowDate());
+            sysUser.setPassword(SecurityUtils.encryptPassword(randomPassword));
+
+            // 设置默认状态
+            sysUser.setStatus("0"); // 正常状态
+            sysUser.setDelFlag("0"); // 未删除
+
+            // 调用远程服务创建用户
+            R<?> registerResult = remoteUserService.registerUserInfo(sysUser, SecurityConstants.INNER);
+
+            if (R.FAIL == registerResult.getCode()) {
+                logger.error("📱 自动创建用户失败 - 手机号: {}, 错误: {}", mobile, registerResult.getMsg());
+                throw new ServiceException("创建账号失败: " + registerResult.getMsg());
+            }
+
+            logger.info("✅ 自动创建用户成功 - 手机号: {}, 用户名: {}", mobile, username);
+            recordLogService.recordLogininfor(mobile, Constants.REGISTER, "手机号自动注册成功");
+
+            // 重新获取创建的用户信息
+            R<LoginUser> userResult = remoteUserService.getUserInfo(mobile, SecurityConstants.INNER);
+            if (R.FAIL == userResult.getCode()) {
+                throw new ServiceException("获取新创建用户信息失败");
+            }
+
+            return userResult.getData();
+
+        } catch (Exception e) {
+            logger.error("📱 自动创建用户异常 - 手机号: {}", mobile, e);
+            throw new ServiceException("自动创建账号失败，请稍后重试");
+        }
+    }
+
+    /**
+     * 生成唯一用户名
+     *
+     * @param mobile 手机号
+     * @return 唯一用户名
+     */
+    private String generateUniqueUsername(String mobile) {
+        // 使用手机号 + 4位随机数的格式
+        Random random = new Random();
+        int randomSuffix = 1000 + random.nextInt(9000); // 生成1000-9999的随机数
+        return mobile + "_" + randomSuffix;
+    }
+
+    /**
+     * 生成随机密码
+     *
+     * @return 8位随机密码
+     */
+    private String generateRandomPassword() {
+        String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        Random random = new Random();
+        StringBuilder password = new StringBuilder();
+
+        for (int i = 0; i < 8; i++) {
+            password.append(chars.charAt(random.nextInt(chars.length())));
+        }
+
+        return password.toString();
     }
 }

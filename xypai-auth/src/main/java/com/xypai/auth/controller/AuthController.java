@@ -1,6 +1,7 @@
 package com.xypai.auth.controller;
 
 import com.xypai.auth.dto.LoginRequest;
+import com.xypai.auth.dto.SmsCodeRequest;
 import com.xypai.auth.dto.SmsLoginRequest;
 import com.xypai.auth.service.AuthService;
 import com.xypai.auth.vo.LoginResponse;
@@ -12,7 +13,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Pattern;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -64,10 +64,8 @@ public class AuthController {
      */
     @Operation(summary = "📱 发送短信验证码", description = "向指定手机号发送登录验证码")
     @PostMapping("/sms/send")
-    public ResponseEntity<R<SmsCodeResponse>> sendSmsCode(
-            @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确") @RequestParam String mobile,
-            @RequestParam(defaultValue = "app") String clientType) {
-        return authService.sendSmsCode(mobile, clientType);
+    public ResponseEntity<R<SmsCodeResponse>> sendSmsCode(@Valid @RequestBody SmsCodeRequest request) {
+        return authService.sendSmsCode(request);
     }
 
     /**

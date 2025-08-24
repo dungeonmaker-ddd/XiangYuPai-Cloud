@@ -1,5 +1,8 @@
 ---
 alwaysApply: true
 ---
+代码内不要添加ICON，可以使用XX:XX做模块描述
 
 客户端类型只能是web、app或mini
+
+接口是使用携带的clientType来判断web/app/mini的

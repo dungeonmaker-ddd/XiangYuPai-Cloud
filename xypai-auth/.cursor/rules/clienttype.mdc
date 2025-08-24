@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+客户端类型只能是web、app或mini

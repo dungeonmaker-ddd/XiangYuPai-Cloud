@@ -31,3 +31,16 @@ spring:
         # 共享配置
         shared-configs:
           - application-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
+
+# 认证配置
+auth:
+  token:
+    # 令牌过期时间（秒），默认2小时
+    expire-time: 7200
+    # 刷新令牌过期时间（秒），默认7天  
+    refresh-expire-time: 604800
+  sms:
+    # 短信验证码过期时间（秒），默认5分钟
+    code-expire-time: 300
+    # 短信发送频率限制（秒），默认60秒
+    send-interval: 60

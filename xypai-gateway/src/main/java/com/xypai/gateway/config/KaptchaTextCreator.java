@@ -1,61 +1,61 @@
 package com.xypai.gateway.config;
 
-import java.util.Random;
-
 import com.google.code.kaptcha.text.impl.DefaultTextCreator;
 
+import java.util.Random;
+
 /**
- * 验证码文本生成器
+ * 验证码文本生成器 - 数学运算
  *
- * @author ruoyi
+ * 生成简单的数学运算表达式作为验证码
+ * 支持加法、减法、乘法运算
+ *
+ * @author xypai
  */
 public class KaptchaTextCreator extends DefaultTextCreator {
-    private static final String[] CNUMBERS = "0,1,2,3,4,5,6,7,8,9,10".split(",");
 
+    private static final String[] NUMS = "0,1,2,3,4,5,6,7,8,9,10".split(",");
+    private static final String[] OPERATORS = {"+", "-", "*"};
+    
     @Override
     public String getText() {
-        Integer result = 0;
         Random random = new Random();
+
         int x = random.nextInt(10);
         int y = random.nextInt(10);
-        StringBuilder suChinese = new StringBuilder();
-        int randomoperands = random.nextInt(3);
-        if (randomoperands == 0) {
-            result = x * y;
-            suChinese.append(CNUMBERS[x]);
-            suChinese.append("*");
-            suChinese.append(CNUMBERS[y]);
-        } else if (randomoperands == 1) {
-            if ((x != 0) && y % x == 0) {
-                result = y / x;
-                suChinese.append(CNUMBERS[y]);
-                suChinese.append("/");
-                suChinese.append(CNUMBERS[x]);
-            } else {
+        String operator = OPERATORS[random.nextInt(OPERATORS.length)];
+
+        int result;
+        String expression;
+
+        switch (operator) {
+            case "+":
                 result = x + y;
-                suChinese.append(CNUMBERS[x]);
-                suChinese.append("+");
-                suChinese.append(CNUMBERS[y]);
-            }
-        } else if (randomoperands == 2) {
-            if (x >= y) {
+                expression = x + "+" + y + "=?";
+                break;
+            case "-":
+                // 确保结果为正数
+                if (x < y) {
+                    int temp = x;
+                    x = y;
+                    y = temp;
+                }
                 result = x - y;
-                suChinese.append(CNUMBERS[x]);
-                suChinese.append("-");
-                suChinese.append(CNUMBERS[y]);
-            } else {
-                result = y - x;
-                suChinese.append(CNUMBERS[y]);
-                suChinese.append("-");
-                suChinese.append(CNUMBERS[x]);
-            }
-        } else {
-            result = x + y;
-            suChinese.append(CNUMBERS[x]);
-            suChinese.append("+");
-            suChinese.append(CNUMBERS[y]);
+                expression = x + "-" + y + "=?";
+                break;
+            case "*":
+                // 使用较小的数字进行乘法，避免结果过大
+                x = random.nextInt(6) + 1; // 1-6
+                y = random.nextInt(6) + 1; // 1-6
+                result = x * y;
+                expression = x + "×" + y + "=?";
+                break;
+            default:
+                result = x + y;
+                expression = x + "+" + y + "=?";
         }
-        suChinese.append("=?@" + result);
-        return suChinese.toString();
+
+        // 返回格式: 表达式@结果
+        return expression + "@" + result;
     }
 }

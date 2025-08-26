@@ -9,56 +9,94 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>xypai-auth</artifactId>
+    <packaging>pom</packaging>
 
     <description>
-        xypai-auth认证授权中心
+        xypai-auth认证授权中心 - 微服务架构父模块
     </description>
 
-    <dependencies>
+    <!-- 属性定义 - 继承父级配置 -->
+    <properties>
+        <xypai.version>3.6.6</xypai.version>
+        <spring-boot.version>3.3.5</spring-boot.version>
+        <spring-cloud.version>2023.0.3</spring-cloud.version>
+        <spring-cloud-alibaba.version>2023.0.1.2</spring-cloud-alibaba.version>
+        <knife4j.version>4.4.0</knife4j.version>
+        <springdoc.version>2.3.0</springdoc.version>
+    </properties>
 
-        <!-- SpringCloud Alibaba Nacos -->
-        <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
-        </dependency>
+    <!-- 子模块定义 -->
+    <modules>
+        <module>xypai-auth-common</module>
+        <module>xypai-auth-app-auth</module>
+        <module>xypai-auth-app</module>
+        <module>xypai-auth-admin</module>
+    </modules>
 
-        <!-- SpringCloud Alibaba Nacos Config -->
-        <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
-        </dependency>
+    <!-- 子模块公共依赖管理 -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- BOM 导入必须在前面 - 继承父级依赖管理 -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
 
-        <!-- SpringCloud Alibaba Sentinel -->
-        <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
-        </dependency>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
 
-        <!-- SpringBoot Web -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+                <version>${spring-cloud-alibaba.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
 
-        <!-- SpringBoot Actuator -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
+            <!-- Swagger API文档注解 -->
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-annotations-jakarta</artifactId>
+                <version>2.2.22</version>
+            </dependency>
 
-        <!-- RuoYi Common Security-->
-        <dependency>
-            <groupId>com.xypai</groupId>
-            <artifactId>xypai-common-security</artifactId>
-        </dependency>
+            <!-- XYPai Common Security-->
+            <dependency>
+                <groupId>com.xypai</groupId>
+                <artifactId>xypai-common-security</artifactId>
+                <version>${xypai.version}</version>
+            </dependency>
 
-        <!-- RuoYi Common Swagger-->
-        <dependency>
-            <groupId>com.xypai</groupId>
-            <artifactId>xypai-common-swagger</artifactId>
-        </dependency>
+            <!-- XYPai Common Swagger-->
+            <dependency>
+                <groupId>com.xypai</groupId>
+                <artifactId>xypai-common-swagger</artifactId>
+                <version>${xypai.version}</version>
+            </dependency>
 
-    </dependencies>
+            <!-- 认证模块内部依赖 -->
+            <dependency>
+                <groupId>com.xypai</groupId>
+                <artifactId>xypai-auth-common</artifactId>
+                <version>${xypai.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.xypai</groupId>
+                <artifactId>xypai-auth-app-auth</artifactId>
+                <version>${xypai.version}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <finalName>${project.artifactId}</finalName>

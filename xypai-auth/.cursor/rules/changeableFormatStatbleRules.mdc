@@ -97,11 +97,11 @@ public record CreateUserRequest(
     @NotBlank(message = "Username is required")
     @Size(min = 3, max = 20)
     String username,
-
+    
     @NotNull
     @Email(message = "Valid email required")
     String email,
-
+    
     @NotNull(message = "Role is required")
     Role role
 ) {}
@@ -191,18 +191,18 @@ public record DateRange(LocalDate start, LocalDate end) {
             throw new IllegalArgumentException("Start must be before end");
         }
     }
-
+    
     // Factory methods
     public static DateRange of(LocalDate start, LocalDate end) {
         return new DateRange(start, end);
     }
-
+    
     public static DateRange lastDays(int days) {
         var end = LocalDate.now();
         var start = end.minusDays(days);
         return new DateRange(start, end);
     }
-
+    
     public static DateRange currentMonth() {
         var now = LocalDate.now();
         return new DateRange(
@@ -313,10 +313,10 @@ public record UserRef(Long id, String username, Instant lastModified) {
     // Custom equality based on ID only
     @Override
     public boolean equals(Object o) {
-        return o instanceof UserRef other &&
+        return o instanceof UserRef other && 
                Objects.equals(this.id, other.id);
     }
-
+    
     @Override
     public int hashCode() {
         return Objects.hash(id);
@@ -336,11 +336,11 @@ public record Rectangle(double width, double height) {
     public double area() {
         return width * height;
     }
-
+    
     public double perimeter() {
         return 2 * (width + height);
     }
-
+    
     public boolean isSquare() {
         return width == height;
     }
@@ -425,7 +425,7 @@ public record ${Name}Request(
         Objects.requireNonNull(${field}, "${field} cannot be null");
         // Additional validation
     }
-
+    
     // Factory methods if needed
     public static ${Name}Request of(${params}) {
         return new ${Name}Request(${args});
@@ -449,21 +449,21 @@ When reviewing Record usage:
 
 ```markdown
 ## Record Review Checklist
-### Mandatory
+### Mandatory 
 - [ ] Used for DTOs, not entities
 - [ ] Validation in compact constructor
 - [ ] Immutable collections
 - [ ] No business logic
 - [ ] Bean Validation annotations
 
-### Recommended
+### Recommended 
 - [ ] Clear naming (Request/Response)
 - [ ] Factory methods provided
 - [ ] Proper JSON annotations
 - [ ] Shallow nesting (≤2 levels)
 - [ ] Optional for nullable fields
 
-### Quality
+### Quality 
 - [ ] No mutable state
 - [ ] Defensive copying
 - [ ] Documented decisions
@@ -866,13 +866,13 @@ java@Service
 public class UserService {
     private final UserRepository repository; // Depend on interface
     private final ValidationService validator; // Separate validation concern
-
+    
     public Optional<UserDTO> findUser(String id) { // Return Optional, not null
         validator.validateId(id); // Fail fast
         return repository.findById(id)
                         .map(this::toDTO); // Transform in single place
     }
-
+    
     private UserDTO toDTO(User entity) { // Single responsibility method
         return new UserDTO(
             entity.getUsername(),

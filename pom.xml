@@ -32,12 +32,21 @@
         <jjwt.version>0.9.1</jjwt.version>
         <minio.version>8.2.2</minio.version>
         <poi.version>4.1.2</poi.version>
-        <springdoc.version>2.6.0</springdoc.version>
-        <knife4j.version>4.5.0</knife4j.version>
+        <springdoc.version>2.3.0</springdoc.version>
+        <knife4j.version>4.4.0</knife4j.version>
         <transmittable-thread-local.version>2.14.4</transmittable-thread-local.version>
     </properties>
 
     <!-- 依赖声明 -->
+    <modules>
+        <module>xypai-auth</module>
+        <module>xypai-gateway</module>
+        <module>xypai-visual</module>
+        <module>xypai-modules</module>
+        <module>xypai-api</module>
+        <module>xypai-common</module>
+    </modules>
+
     <dependencyManagement>
         <dependencies>
 
@@ -222,15 +231,6 @@
 
         </dependencies>
     </dependencyManagement>
-
-    <modules>
-        <module>xypai-auth</module>
-        <module>xypai-gateway</module>
-        <module>xypai-visual</module>
-        <module>xypai-modules</module>
-        <module>xypai-api</module>
-        <module>xypai-common</module>
-    </modules>
     <packaging>pom</packaging>
 
     <dependencies>

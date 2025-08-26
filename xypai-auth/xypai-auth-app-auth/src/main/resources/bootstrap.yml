@@ -1,0 +1,73 @@
+# Tomcat
+server:
+  port: 8100
+
+# Spring
+spring:
+  application:
+    # 应用名称 - APP认证服务独立命名
+    name: xypai-auth-app-auth
+  profiles:
+    # 环境配置
+    active: dev
+  cloud:
+    nacos:
+      discovery:
+        # 服务注册地址 - 外部化配置
+        server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+        # 用户名 - 外部化配置
+        username: ${NACOS_USERNAME:nacos}
+        # 密码 - 外部化配置
+        password: ${NACOS_PASSWORD:nacos}
+        # 服务实例元数据
+        metadata:
+          version: 4.0.0
+          service-type: auth
+          client-support: app
+      config:
+        # 配置中心地址 - 外部化配置
+        server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+        # 配置文件格式
+        file-extension: yml
+        # 用户名 - 外部化配置
+        username: ${NACOS_USERNAME:nacos}
+        # 密码 - 外部化配置
+        password: ${NACOS_PASSWORD:nacos}
+        # 共享配置
+        shared-configs:
+          - application-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
+
+# 认证配置
+auth:
+  token:
+    # 令牌过期时间（秒），默认2小时
+    expire-time: 7200
+    # 刷新令牌过期时间（秒），默认7天  
+    refresh-expire-time: 604800
+  sms:
+    # 短信验证码过期时间（秒），默认5分钟
+    code-expire-time: 300
+    # 短信发送频率限制（秒），默认60秒
+    send-interval: 60
+
+# Knife4j配置
+knife4j:
+  enable: true
+  setting:
+    language: zh_CN
+    enable-version: true
+    enable-host-text: APP认证服务
+  production: false
+  basic:
+    enable: false
+
+# SpringDoc配置
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+# 网关配置  
+gateway:
+  host: localhost:8080

@@ -4,6 +4,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 
@@ -26,8 +27,11 @@ public class SimpleSwaggerConfig {
      * - @Operation: 接口描述
      * - @Parameter: 参数描述
      * - @ApiResponse: 响应描述
+     *
+     * 只在没有其他 OpenAPI Bean 时启用
      */
     @Bean
+    @ConditionalOnMissingBean(OpenAPI.class)
     public OpenAPI createOpenAPI() {
         return new OpenAPI()
                 .info(new Info()

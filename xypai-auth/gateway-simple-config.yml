@@ -1,0 +1,108 @@
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          lowerCaseServiceId: true
+          enabled: true
+      routes:
+        # APP认证服务 - 修正服务名称
+        - id: xypai-auth-app-auth
+          uri: lb://xypai-auth-app-auth
+          predicates:
+            - Path=/auth/**
+          filters:
+            # 验证码处理
+            - CacheRequestBody
+            - ValidateCodeFilter
+            - StripPrefix=1
+
+        # 管理端认证服务 - 修正路径匹配
+        - id: xypai-auth-admin
+          uri: lb://xypai-auth-admin
+          predicates:
+            - Path=/admin/**
+          filters:
+            - CacheRequestBody
+            - ValidateCodeFilter
+            - StripPrefix=1
+
+        # APP业务服务 - 新增APP业务功能路由
+        - id: xypai-auth-app-business
+          uri: lb://xypai-auth-app
+          predicates:
+            - Path=/app/**
+          filters:
+            - StripPrefix=1
+
+        # 代码生成
+        - id: xypai-gen
+          uri: lb://xypai-gen
+          predicates:
+            - Path=/code/**
+          filters:
+            - StripPrefix=1
+
+        # 定时任务
+        - id: xypai-job
+          uri: lb://xypai-job
+          predicates:
+            - Path=/schedule/**
+          filters:
+            - StripPrefix=1
+
+        # 系统模块
+        - id: xypai-system
+          uri: lb://xypai-system
+          predicates:
+            - Path=/system/**
+          filters:
+            - StripPrefix=1
+
+        # 文件服务
+        - id: xypai-file
+          uri: lb://xypai-file
+          predicates:
+            - Path=/file/**
+          filters:
+            - StripPrefix=1
+
+# 安全配置 - 仅保留已有配置
+security:
+  # 验证码
+  captcha:
+    enabled: true
+    type: math
+  # 防止XSS攻击
+  xss:
+    enabled: true
+    excludeUrls:
+      - /system/notice
+
+  # 不校验白名单 - 仅添加已实现的接口
+  ignore:
+    whites:
+      - /auth/logout
+      - /auth/login
+      - /auth/login/sms           # 已实现
+      - /auth/sms/send           # 已实现
+      - /auth/refresh            # 已实现
+      - /auth/info               # 已实现
+      - /auth/validate           # 已实现
+      - /admin/auth/login        # 已实现
+      - /admin/auth/logout       # 已实现
+      - /admin/auth/refresh      # 已实现
+      - /*/v2/api-docs
+      - /*/v3/api-docs
+      - /csrf
+
+# springdoc配置
+springdoc:
+  webjars:
+    # 访问前缀
+    prefix:

@@ -49,10 +49,15 @@ public class AppBusinessController {
      */
     @Operation(summary = "获取个人资料", description = "获取当前用户的详细个人资料")
     @GetMapping("/profile")
-    public R<Map<String, Object>> getUserProfile() {
+    public R<Map<String, Object>> getUserProfile(@RequestHeader("Authorization") String authorization) {
+        // 🔍 示例：在业务逻辑中验证用户身份
+        // authApiService.validateToken(authorization);
+        // authApiService.getCurrentUserInfo(authorization);
+        
         // TODO: 实现获取用户个人资料的业务逻辑
         Map<String, Object> profile = new HashMap<>();
         profile.put("message", "APP业务中心：个人资料功能待实现");
+        profile.put("note", "需要先通过认证服务验证用户身份");
         return R.ok(profile);
     }
 

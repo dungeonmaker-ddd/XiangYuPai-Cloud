@@ -1,0 +1,105 @@
+# Tomcat
+server:
+  port: 9204
+
+# Spring
+spring:
+  application:
+    # 应用名称
+    name: xypai-user
+  profiles:
+    # 环境配置
+    active: dev
+  cloud:
+    nacos:
+      discovery:
+        # 服务注册地址
+        server-addr: 127.0.0.1:8848
+        # 用户名
+        username: nacos
+        # 密码
+        password: nacos
+      config:
+        # 配置中心地址
+        server-addr: 127.0.0.1:8848
+        # 配置文件格式
+        file-extension: yml
+        # 用户名
+        username: nacos
+        # 密码
+        password: nacos
+        # 共享配置
+        shared-configs:
+          - application-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
+
+  # 数据源配置
+  datasource:
+    dynamic:
+      # 设置默认的数据源，默认值即为 master
+      primary: master
+      # 严格匹配数据源，默认false
+      strict: false
+      datasource:
+        master:
+          url: jdbc:mysql://localhost:3306/ry-cloud?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+          username: root
+          password: password
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          initial-size: 10
+          min-idle: 10
+          max-active: 200
+          max-wait: 60000
+          validation-query: SELECT 1 FROM DUAL
+          test-while-idle: true
+          test-on-borrow: false
+          test-on-return: false
+
+# MyBatis Plus配置
+mybatis-plus:
+  # 搜索指定包别名
+  typeAliasesPackage: com.xypai.user.domain.entity
+  # 配置mapper的扫描，找到所有的mapper.xml映射文件
+  mapperLocations: classpath:mapper/**/*.xml
+  # 加载全局的配置文件
+  configuration:
+    # 自动驼峰命名规则（camel case）映射
+    map-underscore-to-camel-case: true
+    # 当映射结果为null时是否调用映射对象的setter方法
+    call-setters-on-nulls: true
+    # 这个配置会将执行的sql打印出来，在开发或测试的时候可以用
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      # 逻辑删除配置
+      logic-delete-field: delFlag
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# Knife4j配置
+knife4j:
+  enable: true
+  setting:
+    language: zh_CN
+    enable-version: true
+  production: false
+
+# SpringDoc配置
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+# 管理端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+  health:
+    # 启用数据库健康检查
+    db:
+      enabled: true

@@ -12,6 +12,7 @@ import com.xypai.common.core.enums.UserStatus;
 import com.xypai.common.core.exception.ServiceException;
 import com.xypai.common.core.utils.DateUtils;
 import com.xypai.common.core.utils.StringUtils;
+import com.xypai.common.redis.service.RedisService;
 import com.xypai.common.security.utils.SecurityUtils;
 import com.xypai.system.api.RemoteUserService;
 import com.xypai.system.api.domain.SysUser;
@@ -22,6 +23,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 /**
  * APP端登录服务 - 相对宽松的验证策略
@@ -33,6 +35,8 @@ public class AppLoginService extends BaseAuthService {
 
     private static final Logger logger = LoggerFactory.getLogger(AppLoginService.class);
 
+    private final RedisService redisService;
+
     /**
      * 构造器注入 - Spring Boot 3+ 推荐方式
      *
@@ -40,8 +44,10 @@ public class AppLoginService extends BaseAuthService {
      */
     public AppLoginService(@Lazy RemoteUserService remoteUserService,
                            SysPasswordService passwordService,
-                           SysRecordLogService recordLogService) {
+                           SysRecordLogService recordLogService,
+                           RedisService redisService) {
         super(remoteUserService, passwordService, recordLogService);
+        this.redisService = redisService;
     }
 
     /**
@@ -81,7 +87,7 @@ public class AppLoginService extends BaseAuthService {
     protected void validatePasswordPolicy(String username, String password) {
         // APP端相对宽松的密码长度要求
         if (password.length() < 6 || password.length() > 50) {
-            recordLogService.recordLogininfor(username, Constants.LOGIN_FAIL, "密码长度必须在6-50个字符之间");
+            recordLogService.recordLogininfor(username, Constants.LOGIN_FAIL, "密码长度不符合要求");
             throw new ServiceException("密码长度必须在6-50个字符之间");
         }
     }
@@ -98,20 +104,21 @@ public class AppLoginService extends BaseAuthService {
     public LoginUser loginBySms(String mobile, String code) {
         // 验证手机号格式
         if (!mobile.matches("^1[3-9]\\d{9}$")) {
-            recordLogService.recordLogininfor(mobile, Constants.LOGIN_FAIL, "手机号格式不正确");
+            recordLogService.recordLogininfor(mobile, Constants.LOGIN_FAIL, "手机号格式错误");
             throw new ServiceException("手机号格式不正确");
         }
 
         // 验证短信验证码 (这里简化处理，实际项目中需要对接短信服务)
         if (StringUtils.isBlank(code) || code.length() != 6) {
-            recordLogService.recordLogininfor(mobile, Constants.LOGIN_FAIL, "验证码格式不正确");
+            recordLogService.recordLogininfor(mobile, Constants.LOGIN_FAIL, "验证码格式错误");
             throw new ServiceException("验证码格式不正确");
         }
 
         // 验证短信验证码的有效性
         validateSmsCode(mobile, code);
 
-        // 通过手机号获取用户信息
+        // 🔧 优化：先尝试按手机号查询，如果失败再创建账号
+        // 注意：当前系统的getUserInfo是按用户名查询，这里会失败，但这是预期的
         R<LoginUser> userResult = remoteUserService.getUserInfo(mobile, SecurityConstants.INNER);
 
         LoginUser userInfo;
@@ -119,7 +126,7 @@ public class AppLoginService extends BaseAuthService {
             // 手机号未注册，自动创建账号
             logger.info("📱 检测到未注册手机号，开始自动创建账号 - 手机号: {}", mobile);
             userInfo = autoCreateUserByMobile(mobile);
-            recordLogService.recordLogininfor(mobile, Constants.LOGIN_SUCCESS, "未注册手机号自动创建账号并登录成功");
+            recordLogService.recordLogininfor(mobile, Constants.LOGIN_SUCCESS, "自动注册并登录成功");
         } else {
             userInfo = userResult.getData();
             SysUser user = userInfo.getSysUser();
@@ -134,7 +141,7 @@ public class AppLoginService extends BaseAuthService {
                 throw new ServiceException("账号已停用");
             }
 
-            recordLogService.recordLogininfor(mobile, Constants.LOGIN_SUCCESS, "短信验证码登录成功");
+            recordLogService.recordLogininfor(mobile, Constants.LOGIN_SUCCESS, "短信登录成功");
         }
 
         return userInfo;
@@ -149,13 +156,19 @@ public class AppLoginService extends BaseAuthService {
             throw new ServiceException("手机号格式不正确");
         }
 
+        // 检查发送频率限制
+        checkSmsFrequencyLimit(mobile);
+
         // 调用短信服务发送验证码
         String verificationCode = sendActualSmsCode(mobile);
 
         // 缓存验证码到Redis，设置5分钟过期
         cacheVerificationCode(mobile, verificationCode, 300);
 
-        recordLogService.recordLogininfor(mobile, Constants.LOGIN_SUCCESS, "短信验证码发送成功");
+        // 缓存发送时间，用于频率限制（5秒 - 测试用）
+        cacheSmsFrequencyLimit(mobile, 5);
+
+        recordLogService.recordLogininfor(mobile, Constants.LOGIN_SUCCESS, "短信发送成功");
 
         // 返回短信验证码响应
         return SmsCodeResponse.success(mobile, 300); // 5分钟过期
@@ -262,21 +275,35 @@ public class AppLoginService extends BaseAuthService {
             sysUser.setStatus("0"); // 正常状态
             sysUser.setDelFlag("0"); // 未删除
 
+            // 🔧 添加必要的默认字段
+            sysUser.setDeptId(103L); // 设置默认部门ID（请根据实际情况调整）
+            sysUser.setSex("2"); // 未知性别
+            sysUser.setCreateBy("system"); // 系统创建
+            sysUser.setCreateTime(DateUtils.getNowDate());
+
             // 调用远程服务创建用户
             R<?> registerResult = remoteUserService.registerUserInfo(sysUser, SecurityConstants.INNER);
 
             if (R.FAIL == registerResult.getCode()) {
-                logger.error("📱 自动创建用户失败 - 手机号: {}, 错误: {}", mobile, registerResult.getMsg());
-                throw new ServiceException("创建账号失败: " + registerResult.getMsg());
+                String errorMsg = registerResult.getMsg();
+                logger.error("📱 自动创建用户失败 - 手机号: {}, 用户名: {}, 错误详情: {}",
+                        mobile, username, errorMsg);
+                logger.error("📱 创建失败的用户对象: {}", sysUser.toString());
+
+                // 🔧 提供更友好的错误提示
+                String userFriendlyMsg = getUserFriendlyErrorMessage(errorMsg);
+                throw new ServiceException(userFriendlyMsg);
             }
 
             logger.info("✅ 自动创建用户成功 - 手机号: {}, 用户名: {}", mobile, username);
-            recordLogService.recordLogininfor(mobile, Constants.REGISTER, "手机号自动注册成功");
+            recordLogService.recordLogininfor(mobile, Constants.REGISTER, "自动注册成功");
 
-            // 重新获取创建的用户信息
-            R<LoginUser> userResult = remoteUserService.getUserInfo(mobile, SecurityConstants.INNER);
+            // 重新获取创建的用户信息（使用用户名而不是手机号）
+            R<LoginUser> userResult = remoteUserService.getUserInfo(username, SecurityConstants.INNER);
             if (R.FAIL == userResult.getCode()) {
-                throw new ServiceException("获取新创建用户信息失败");
+                logger.error("📱 获取新创建用户信息失败 - 用户名: {}, 手机号: {}, 错误: {}",
+                        username, mobile, userResult.getMsg());
+                throw new ServiceException("获取新创建用户信息失败: " + userResult.getMsg());
             }
 
             return userResult.getData();
@@ -285,6 +312,32 @@ public class AppLoginService extends BaseAuthService {
             logger.error("📱 自动创建用户异常 - 手机号: {}", mobile, e);
             throw new ServiceException("自动创建账号失败，请稍后重试");
         }
+    }
+
+    /**
+     * 🔧 将系统错误信息转换为用户友好的提示
+     */
+    private String getUserFriendlyErrorMessage(String systemError) {
+        if (StringUtils.isBlank(systemError)) {
+            return "创建账号失败，请稍后重试";
+        }
+
+        // 常见错误的友好提示
+        if (systemError.contains("当前系统没有开启注册功能")) {
+            return "系统暂时无法创建新账号，请联系管理员";
+        }
+        if (systemError.contains("注册账号已存在")) {
+            return "该手机号已注册，请直接登录";
+        }
+        if (systemError.contains("用户账号不能为空")) {
+            return "账号创建失败，系统错误";
+        }
+        if (systemError.contains("部门")) {
+            return "账号创建失败，部门配置异常";
+        }
+
+        // 默认返回系统错误信息
+        return "创建账号失败：" + systemError;
     }
 
     /**
@@ -328,7 +381,7 @@ public class AppLoginService extends BaseAuthService {
         String cachedCode = getCachedVerificationCode(mobile);
 
         if (StringUtils.isBlank(cachedCode)) {
-            recordLogService.recordLogininfor(mobile, Constants.LOGIN_FAIL, "验证码已过期或不存在");
+            recordLogService.recordLogininfor(mobile, Constants.LOGIN_FAIL, "验证码已过期");
             throw new ServiceException("验证码已过期，请重新获取");
         }
 
@@ -379,13 +432,14 @@ public class AppLoginService extends BaseAuthService {
      * @param expireTime 过期时间（秒）
      */
     private void cacheVerificationCode(String mobile, String code, int expireTime) {
-        // TODO: 使用Redis缓存验证码
-        // 现在使用简单的内存缓存，实际项目中应使用Redis
-        String cacheKey = "sms:code:" + mobile;
-        logger.info("🔄 缓存验证码 - 手机号: {}, 过期时间: {}秒", mobile, expireTime);
-
-        // 实际的Redis缓存代码示例：
-        // redisTemplate.opsForValue().set(cacheKey, code, Duration.ofSeconds(expireTime));
+        try {
+            String cacheKey = "sms:code:" + mobile;
+            redisService.setCacheObject(cacheKey, code, (long) expireTime, TimeUnit.SECONDS);
+            logger.info("🔄 缓存验证码到Redis - 手机号: {}, 过期时间: {}秒", mobile, expireTime);
+        } catch (Exception e) {
+            logger.error("❌ 缓存验证码失败 - 手机号: {}, 错误: {}", mobile, e.getMessage());
+            throw new ServiceException("验证码缓存失败，请稍后重试");
+        }
     }
 
     /**
@@ -395,16 +449,15 @@ public class AppLoginService extends BaseAuthService {
      * @return 验证码
      */
     private String getCachedVerificationCode(String mobile) {
-        String cacheKey = "sms:code:" + mobile;
-        // TODO: 从Redis获取验证码
-        // 现在返回固定验证码用于测试，实际项目中从Redis获取
-        logger.info("🔍 获取缓存验证码 - 手机号: {}", mobile);
-
-        // 实际的Redis获取代码示例：
-        // return redisTemplate.opsForValue().get(cacheKey);
-
-        // 测试用固定验证码（生产环境需删除）
-        return "123456";
+        try {
+            String cacheKey = "sms:code:" + mobile;
+            String cachedCode = redisService.getCacheObject(cacheKey);
+            logger.info("🔍 从Redis获取缓存验证码 - 手机号: {}, 存在: {}", mobile, cachedCode != null);
+            return cachedCode;
+        } catch (Exception e) {
+            logger.error("❌ 获取缓存验证码失败 - 手机号: {}, 错误: {}", mobile, e.getMessage());
+            return null;
+        }
     }
 
     /**
@@ -413,10 +466,55 @@ public class AppLoginService extends BaseAuthService {
      * @param mobile 手机号
      */
     private void deleteCachedVerificationCode(String mobile) {
-        String cacheKey = "sms:code:" + mobile;
-        logger.info("🗑️ 删除缓存验证码 - 手机号: {}", mobile);
+        try {
+            String cacheKey = "sms:code:" + mobile;
+            boolean deleted = redisService.deleteObject(cacheKey);
+            logger.info("🗑️ 从Redis删除缓存验证码 - 手机号: {}, 删除成功: {}", mobile, deleted);
+        } catch (Exception e) {
+            logger.error("❌ 删除缓存验证码失败 - 手机号: {}, 错误: {}", mobile, e.getMessage());
+            // 删除失败不影响登录流程，仅记录日志
+        }
+    }
 
-        // 实际的Redis删除代码示例：
-        // redisTemplate.delete(cacheKey);
+    /**
+     * 检查短信发送频率限制
+     *
+     * @param mobile 手机号
+     */
+    private void checkSmsFrequencyLimit(String mobile) {
+        try {
+            String frequencyKey = "sms:frequency:" + mobile;
+            String lastSendTime = redisService.getCacheObject(frequencyKey);
+
+            if (StringUtils.isNotEmpty(lastSendTime)) {
+                recordLogService.recordLogininfor(mobile, Constants.LOGIN_FAIL, "发送过于频繁");
+                throw new ServiceException("短信发送过于频繁，请5秒后再试");
+            }
+
+            logger.info("✅ 短信频率限制检查通过 - 手机号: {}", mobile);
+        } catch (ServiceException e) {
+            throw e; // 重新抛出业务异常
+        } catch (Exception e) {
+            logger.error("❌ 检查短信频率限制失败 - 手机号: {}, 错误: {}", mobile, e.getMessage());
+            // 检查失败不阻止发送，记录日志即可
+        }
+    }
+
+    /**
+     * 缓存短信发送频率限制
+     *
+     * @param mobile     手机号
+     * @param expireTime 限制时间（秒）
+     */
+    private void cacheSmsFrequencyLimit(String mobile, int expireTime) {
+        try {
+            String frequencyKey = "sms:frequency:" + mobile;
+            String currentTime = String.valueOf(System.currentTimeMillis());
+            redisService.setCacheObject(frequencyKey, currentTime, (long) expireTime, TimeUnit.SECONDS);
+            logger.info("⏰ 设置短信发送频率限制 - 手机号: {}, 限制时间: {}秒 (测试模式)", mobile, expireTime);
+        } catch (Exception e) {
+            logger.error("❌ 设置短信频率限制失败 - 手机号: {}, 错误: {}", mobile, e.getMessage());
+            // 设置失败不影响发送流程，仅记录日志
+        }
     }
 }

@@ -13,6 +13,7 @@
         <module>xypai-gen</module>
         <module>xypai-job</module>
         <module>xypai-file</module>
+        <module>xypai-user</module>
     </modules>
 
     <artifactId>xypai-modules</artifactId>

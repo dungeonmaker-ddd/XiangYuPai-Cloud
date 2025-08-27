@@ -55,17 +55,15 @@ app:
       allowed-types: jpg,jpeg,png,gif
       avatar-path: /uploads/avatars/
 
-# Feign客户端配置
-feign:
-  client:
-    config:
-      # 认证服务客户端配置
-      xypai-auth-app-auth:
-        connect-timeout: 3000
-        read-timeout: 5000
-        logger-level: basic
-  hystrix:
-    enabled: true
+# 认证服务配置
+auth:
+  service:
+    # 认证服务URL - 外部化配置
+    url: ${AUTH_SERVICE_URL:http://xypai-auth-app-auth:8101}
+    # 请求超时配置
+    timeout:
+      connect: 3000
+      read: 10000
 
 # 监控配置
 management:

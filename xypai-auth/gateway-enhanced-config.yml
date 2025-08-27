@@ -1,0 +1,378 @@
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      timeout: 6000ms
+      database: 0
+      lettuce:
+        pool:
+          max-active: 100
+          max-wait: -1ms
+          max-idle: 20
+          min-idle: 5
+  cloud:
+    gateway:
+      # 全局配置
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: true
+            exposedHeaders: "Content-Length,Content-Range"
+            maxAge: 3600
+      
+      discovery:
+        locator:
+          lowerCaseServiceId: true
+          enabled: true
+      
+      routes:
+        # 📱 APP端认证服务 (增强配置)
+        - id: xypai-auth-app
+          uri: lb://xypai-auth-app-auth
+          predicates:
+            - Path=/auth/**
+          filters:
+            # 验证码处理 (仅用户名密码登录需要)
+            - name: CacheRequestBody
+            - name: ValidateCodeFilter
+              args:
+                # 指定需要验证码的路径
+                include-paths:
+                  - /auth/login
+                # 排除不需要验证码的路径
+                exclude-paths:
+                  - /auth/login/sms
+                  - /auth/sms/send
+                  - /auth/logout
+                  - /auth/refresh
+                  - /auth/info
+                  - /auth/validate
+            # 移除路径前缀
+            - StripPrefix=1
+            # 限流配置
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 100
+                redis-rate-limiter.burstCapacity: 200
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@ipKeyResolver}"
+            # 重试配置
+            - name: Retry
+              args:
+                retries: 3
+                statuses: BAD_GATEWAY
+                methods: GET,POST
+                backoff:
+                  firstBackoff: 50ms
+                  maxBackoff: 500ms
+                  factor: 2
+                  basedOnPreviousValue: false
+
+        # 🏛️ 管理端认证服务
+        - id: xypai-auth-admin
+          uri: lb://xypai-auth-admin
+          predicates:
+            - Path=/admin/**
+          filters:
+            # 管理端强制验证码
+            - CacheRequestBody
+            - ValidateCodeFilter
+            # 管理端IP限制 (可选)
+            - name: RemoteAddr
+              args:
+                sources:
+                  - 127.0.0.1
+                  - 192.168.0.0/16
+                  - 10.0.0.0/8
+            - StripPrefix=1
+            # 管理端更严格的限流
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 50
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@ipKeyResolver}"
+
+        # 📱 APP业务服务
+        - id: xypai-auth-app-business
+          uri: lb://xypai-auth-app
+          predicates:
+            - Path=/app/**
+          filters:
+            # Token验证过滤器
+            - name: AuthGatewayFilter
+              args:
+                # 需要认证的路径
+                auth-paths:
+                  - /app/user/**
+                  - /app/order/**
+                  - /app/payment/**
+                # 公开路径 (无需认证)
+                public-paths:
+                  - /app/public/**
+                  - /app/health
+            - StripPrefix=1
+
+        # 🌐 Web端认证服务 (新增)
+        - id: xypai-auth-web
+          uri: lb://xypai-auth-web
+          predicates:
+            - Path=/web/auth/**
+          filters:
+            - CacheRequestBody
+            - ValidateCodeFilter
+            - StripPrefix=2
+
+        # 代码生成 (增强)
+        - id: xypai-gen
+          uri: lb://xypai-gen
+          predicates:
+            - Path=/code/**
+          filters:
+            - name: AuthGatewayFilter
+              args:
+                # 代码生成需要管理员权限
+                required-roles:
+                  - ROLE_ADMIN
+                  - ROLE_DEVELOPER
+            - StripPrefix=1
+
+        # 定时任务 (增强)
+        - id: xypai-job
+          uri: lb://xypai-job
+          predicates:
+            - Path=/schedule/**
+          filters:
+            - name: AuthGatewayFilter
+              args:
+                required-roles:
+                  - ROLE_ADMIN
+            - StripPrefix=1
+
+        # 系统模块 (增强)
+        - id: xypai-system
+          uri: lb://xypai-system
+          predicates:
+            - Path=/system/**
+          filters:
+            - name: AuthGatewayFilter
+              args:
+                # 部分系统接口需要认证
+                auth-paths:
+                  - /system/user/**
+                  - /system/role/**
+                  - /system/menu/**
+                  - /system/dept/**
+                public-paths:
+                  - /system/captcha/**
+                  - /system/dict/**
+            - StripPrefix=1
+
+        # 文件服务 (增强)
+        - id: xypai-file
+          uri: lb://xypai-file
+          predicates:
+            - Path=/file/**
+          filters:
+            - name: AuthGatewayFilter
+              args:
+                # 文件上传需要认证，下载可公开
+                auth-paths:
+                  - /file/upload/**
+                  - /file/delete/**
+                public-paths:
+                  - /file/download/**
+                  - /file/preview/**
+            # 文件上传大小限制
+            - name: RequestSize
+              args:
+                maxSize: 50MB
+            - StripPrefix=1
+
+        # 🔔 消息通知服务 (新增)
+        - id: xypai-notification
+          uri: lb://xypai-notification
+          predicates:
+            - Path=/notification/**
+          filters:
+            - name: AuthGatewayFilter
+            - StripPrefix=1
+
+        # 📊 监控服务 (新增)
+        - id: xypai-monitor
+          uri: lb://xypai-monitor
+          predicates:
+            - Path=/monitor/**
+          filters:
+            - name: AuthGatewayFilter
+              args:
+                required-roles:
+                  - ROLE_ADMIN
+            - StripPrefix=1
+
+# 安全配置 (增强)
+security:
+  # 验证码配置
+  captcha:
+    enabled: true
+    type: math
+    # 验证码有效期 (分钟)
+    expiration: 5
+    # 验证码位数
+    length: 4
+    # 验证码字符集
+    charset: "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
+    # 每日同一IP最大获取次数
+    daily-limit: 100
+
+  # XSS防护配置
+  xss:
+    enabled: true
+    excludeUrls:
+      - /system/notice
+      - /file/upload/**
+      - /*/api-docs
+    # XSS过滤级别: BASIC, RELAXED, STRICT
+    filter-level: RELAXED
+
+  # CSRF配置
+  csrf:
+    enabled: false
+    # CSRF token有效期 (小时)
+    token-validity: 12
+
+  # 访问控制配置
+  access:
+    # 是否开启IP黑名单
+    ip-blacklist-enabled: true
+    # 登录失败锁定配置
+    login-failure:
+      # 最大失败次数
+      max-attempts: 5
+      # 锁定时间 (分钟)
+      lock-duration: 30
+      # 锁定范围: IP, USER, IP_AND_USER
+      lock-scope: IP_AND_USER
+
+  # 认证白名单 (增强)
+  ignore:
+    whites:
+      # 认证相关
+      - /auth/login
+      - /auth/login/sms
+      - /auth/sms/send
+      - /auth/logout
+      - /admin/auth/login
+      - /admin/auth/logout
+      - /web/auth/login
+      - /web/auth/logout
+      
+      # 注册相关 (新增)
+      - /auth/register
+      - /auth/register/verify
+      - /auth/password/reset
+      - /auth/password/reset/verify
+      
+      # 文档和健康检查
+      - /*/v2/api-docs
+      - /*/v3/api-docs
+      - /*/swagger-resources/**
+      - /*/webjars/**
+      - /*/doc.html
+      - /*/favicon.ico
+      - /actuator/health
+      - /actuator/info
+      
+      # 静态资源
+      - /static/**
+      - /public/**
+      - /assets/**
+      
+      # 验证码和字典
+      - /system/captcha/**
+      - /system/dict/data/**
+      - /file/download/**
+      - /file/preview/**
+      
+      # WebSocket (如需要)
+      - /websocket/**
+      
+      # 支付回调 (如需要)
+      - /payment/callback/**
+      - /payment/notify/**
+
+# JWT配置 (新增)
+jwt:
+  # JWT密钥
+  secret: xypai-auth-secret-key-2024
+  # Token有效期配置 (小时)
+  expiration:
+    web: 12      # Web端12小时
+    app: 168     # App端7天  
+    admin: 2     # 管理端2小时
+    mini: 24     # 小程序24小时
+  # 刷新Token有效期 (天)
+  refresh-expiration: 30
+
+# 限流配置
+rate-limit:
+  # 全局限流
+  global:
+    replenish-rate: 1000
+    burst-capacity: 2000
+  # 按接口限流
+  endpoints:
+    "/auth/login":
+      replenish-rate: 10
+      burst-capacity: 20
+    "/auth/sms/send":
+      replenish-rate: 1
+      burst-capacity: 5
+    "/admin/auth/login":
+      replenish-rate: 5
+      burst-capacity: 10
+
+# 监控配置
+monitoring:
+  # 链路追踪
+  tracing:
+    enabled: true
+    sample-rate: 0.1
+  # 指标收集
+  metrics:
+    enabled: true
+    # 需要监控的路径
+    include-patterns:
+      - /auth/**
+      - /admin/**
+      - /system/**
+    # 排除的路径
+    exclude-patterns:
+      - /actuator/**
+      - /*/api-docs
+
+# Swagger文档聚合配置
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    config-url: /v3/api-docs/swagger-config
+  webjars:
+    prefix: /webjars
+
+# 日志配置
+logging:
+  level:
+    com.xypai.auth: INFO
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{traceId},%X{spanId}] %logger{36} - %msg%n"

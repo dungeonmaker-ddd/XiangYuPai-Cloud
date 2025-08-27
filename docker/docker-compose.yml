@@ -2,7 +2,7 @@ version: '3.8'
 services:
   xypai-nacos:
     container_name: xypai-nacos
-    image: nacos/nacos-server
+    image: nacos/nacos-server:v2.3.0
     restart: always
     build:
       context: ./nacos
@@ -16,6 +16,7 @@ services:
       - ./nacos/conf/application.properties:/home/nacos/conf/application.properties
     ports:
       - "8848:8848"
+      - "8080:8080"
       - "9848:9848"
       - "9849:9849"
     depends_on:

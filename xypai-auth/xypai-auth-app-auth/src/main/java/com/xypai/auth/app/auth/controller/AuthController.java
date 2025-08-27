@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.*;
  */
 @Tag(name = "📱 APP端认证服务", description = "移动端专用认证接口")
 @RestController
-@RequestMapping("/auth")
 @Validated
 public class AuthController {
 

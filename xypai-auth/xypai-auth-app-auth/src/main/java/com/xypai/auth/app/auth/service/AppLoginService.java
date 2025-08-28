@@ -8,7 +8,6 @@ import com.xypai.auth.common.vo.SmsCodeResponse;
 import com.xypai.common.core.constant.Constants;
 import com.xypai.common.core.constant.SecurityConstants;
 import com.xypai.common.core.domain.R;
-import com.xypai.common.core.enums.UserStatus;
 import com.xypai.common.core.exception.ServiceException;
 import com.xypai.common.core.utils.DateUtils;
 import com.xypai.common.core.utils.StringUtils;
@@ -17,11 +16,14 @@ import com.xypai.common.security.utils.SecurityUtils;
 import com.xypai.system.api.RemoteUserService;
 import com.xypai.system.api.domain.SysUser;
 import com.xypai.system.api.model.LoginUser;
+import com.xypai.user.domain.record.AppUserRegisterRequest;
+import com.xypai.user.domain.record.AppUserResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -36,6 +38,7 @@ public class AppLoginService extends BaseAuthService {
     private static final Logger logger = LoggerFactory.getLogger(AppLoginService.class);
 
     private final RedisService redisService;
+    private final RemoteAppUserService remoteAppUserService;
 
     /**
      * 构造器注入 - Spring Boot 3+ 推荐方式
@@ -45,9 +48,11 @@ public class AppLoginService extends BaseAuthService {
     public AppLoginService(@Lazy RemoteUserService remoteUserService,
                            SysPasswordService passwordService,
                            SysRecordLogService recordLogService,
-                           RedisService redisService) {
+                           RedisService redisService,
+                           @Lazy RemoteAppUserService remoteAppUserService) {
         super(remoteUserService, passwordService, recordLogService);
         this.redisService = redisService;
+        this.remoteAppUserService = remoteAppUserService;
     }
 
     /**
@@ -99,16 +104,23 @@ public class AppLoginService extends BaseAuthService {
     }
 
     /**
-     * 手机号验证码登录
+     * 手机号验证码登录 - 使用新的APP用户服务
      */
     public LoginUser loginBySms(String mobile, String code) {
+        return loginBySms(mobile, code, "app");
+    }
+
+    /**
+     * 手机号验证码登录（带客户端类型）
+     */
+    public LoginUser loginBySms(String mobile, String code, String clientType) {
         // 验证手机号格式
         if (!mobile.matches("^1[3-9]\\d{9}$")) {
             recordLogService.recordLogininfor(mobile, Constants.LOGIN_FAIL, "手机号格式错误");
             throw new ServiceException("手机号格式不正确");
         }
 
-        // 验证短信验证码 (这里简化处理，实际项目中需要对接短信服务)
+        // 验证短信验证码
         if (StringUtils.isBlank(code) || code.length() != 6) {
             recordLogService.recordLogininfor(mobile, Constants.LOGIN_FAIL, "验证码格式错误");
             throw new ServiceException("验证码格式不正确");
@@ -117,30 +129,41 @@ public class AppLoginService extends BaseAuthService {
         // 验证短信验证码的有效性
         validateSmsCode(mobile, code);
 
-        // 🔧 优化：先尝试按手机号查询，如果失败再创建账号
-        // 注意：当前系统的getUserInfo是按用户名查询，这里会失败，但这是预期的
-        R<LoginUser> userResult = remoteUserService.getUserInfo(mobile, SecurityConstants.INNER);
-
+        // 使用远程APP用户服务查询用户
+        Optional<AppUserResponse> appUserOpt;
+        try {
+            appUserOpt = remoteAppUserService.getByMobile(mobile);
+        } catch (Exception e) {
+            logger.error("APP用户服务：查询用户失败 - 手机号: {}, 错误: {}", mobile, e.getMessage());
+            // 如果远程服务不可用，返回空Optional，触发自动创建用户流程
+            appUserOpt = Optional.empty();
+        }
+        
         LoginUser userInfo;
-        if (R.FAIL == userResult.getCode()) {
+        if (appUserOpt.isEmpty()) {
             // 手机号未注册，自动创建账号
-            logger.info("📱 检测到未注册手机号，开始自动创建账号 - 手机号: {}", mobile);
-            userInfo = autoCreateUserByMobile(mobile);
+            logger.info("APP用户服务：检测到未注册手机号，开始自动创建账号 - 手机号: {}", mobile);
+            AppUserResponse appUser = autoCreateAppUser(mobile, clientType);
+
+            // 将APP用户转换为LoginUser（保持向后兼容）
+            userInfo = convertAppUserToLoginUser(appUser);
+            
             recordLogService.recordLogininfor(mobile, Constants.LOGIN_SUCCESS, "自动注册并登录成功");
         } else {
-            userInfo = userResult.getData();
-            SysUser user = userInfo.getSysUser();
-
+            AppUserResponse appUser = appUserOpt.get();
+            
             // 检查用户状态
-            if (UserStatus.DELETED.getCode().equals(user.getDelFlag())) {
-                recordLogService.recordLogininfor(mobile, Constants.LOGIN_FAIL, "账号已被删除");
-                throw new ServiceException("账号已被删除");
-            }
-            if (UserStatus.DISABLE.getCode().equals(user.getStatus())) {
+            if (appUser.status() == 0) {
                 recordLogService.recordLogininfor(mobile, Constants.LOGIN_FAIL, "账号已停用");
                 throw new ServiceException("账号已停用");
             }
 
+            // 更新最后登录时间
+            remoteAppUserService.updateLastLoginTime(appUser.userId());
+
+            // 将APP用户转换为LoginUser
+            userInfo = convertAppUserToLoginUser(appUser);
+            
             recordLogService.recordLogininfor(mobile, Constants.LOGIN_SUCCESS, "短信登录成功");
         }
 
@@ -207,8 +230,23 @@ public class AppLoginService extends BaseAuthService {
      */
     public LoginUser loginBySms(String mobile, String code,
                                 String deviceInfo, String pushToken) {
+        return loginBySms(mobile, code, "app", deviceInfo, pushToken);
+    }
+
+    /**
+     * 🚀 APP端短信登录 - 完整版本
+     *
+     * @param mobile     手机号
+     * @param code       验证码
+     * @param clientType 客户端类型
+     * @param deviceInfo 设备信息
+     * @param pushToken  推送token
+     * @return 用户信息
+     */
+    public LoginUser loginBySms(String mobile, String code, String clientType,
+                                String deviceInfo, String pushToken) {
         // 执行基本短信登录
-        LoginUser userInfo = loginBySms(mobile, code);
+        LoginUser userInfo = loginBySms(mobile, code, clientType);
 
         // 绑定设备信息和推送token
         if (StringUtils.isNotEmpty(deviceInfo) || StringUtils.isNotEmpty(pushToken)) {
@@ -250,11 +288,78 @@ public class AppLoginService extends BaseAuthService {
     }
 
     /**
-     * 🚀 通过手机号自动创建用户账号
+     * 🚀 通过手机号自动创建APP用户账号
+     *
+     * @param mobile 手机号
+     * @param clientType 客户端类型
+     * @return 创建的APP用户信息
+     */
+    private AppUserResponse autoCreateAppUser(String mobile, String clientType) {
+        try {
+            // 生成默认昵称
+            String nickname = "手机用户" + mobile.substring(7);
+
+            // 创建注册请求
+            AppUserRegisterRequest registerRequest = AppUserRegisterRequest.of(mobile, nickname, clientType);
+
+            // 调用远程APP用户服务注册
+            AppUserResponse appUser = remoteAppUserService.register(registerRequest);
+
+            logger.info("APP用户服务：自动创建用户成功 - 手机号: {}, 用户ID: {}", mobile, appUser.userId());
+            recordLogService.recordLogininfor(mobile, Constants.REGISTER, "APP用户自动注册成功");
+
+            return appUser;
+
+        } catch (Exception e) {
+            logger.error("APP用户服务：自动创建用户异常 - 手机号: {}", mobile, e);
+            throw new ServiceException("自动创建账号失败，请稍后重试: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 将APP用户转换为LoginUser（保持向后兼容）
+     */
+    private LoginUser convertAppUserToLoginUser(AppUserResponse appUser) {
+        try {
+            // 创建SysUser对象
+            SysUser sysUser = new SysUser();
+            sysUser.setUserId(appUser.userId());
+            sysUser.setUserName(appUser.username() != null ? appUser.username() : appUser.mobile());
+            sysUser.setNickName(appUser.nickname());
+            sysUser.setPhonenumber(appUser.mobile());
+            sysUser.setEmail(appUser.email());
+            sysUser.setAvatar(appUser.avatar());
+            sysUser.setSex(appUser.gender() != null ? appUser.gender().toString() : "0");
+            sysUser.setStatus(appUser.status().toString());
+            sysUser.setDelFlag("0"); // APP用户都是正常状态
+            sysUser.setLoginDate(appUser.lastLoginTime() != null ?
+                    java.util.Date.from(appUser.lastLoginTime().atZone(java.time.ZoneId.systemDefault()).toInstant()) : null);
+            sysUser.setCreateTime(appUser.createTime() != null ?
+                    java.util.Date.from(appUser.createTime().atZone(java.time.ZoneId.systemDefault()).toInstant()) : null);
+
+            // 创建LoginUser对象
+            LoginUser loginUser = new LoginUser();
+            loginUser.setSysUser(sysUser);
+
+            // 设置默认权限（APP用户基础权限）
+            loginUser.setPermissions(java.util.Set.of("app:user:basic"));
+
+            return loginUser;
+
+        } catch (Exception e) {
+            logger.error("转换APP用户到LoginUser失败 - 用户ID: {}", appUser.userId(), e);
+            throw new ServiceException("用户信息转换失败");
+        }
+    }
+
+    /**
+     * 🚀 通过手机号自动创建用户账号（兼容旧方法）
      *
      * @param mobile 手机号
      * @return 创建的用户登录信息
+     * @deprecated 使用 autoCreateAppUser 替代
      */
+    @Deprecated
     private LoginUser autoCreateUserByMobile(String mobile) {
         try {
             // 生成默认用户名（mobile_xxxx格式，避免重复）

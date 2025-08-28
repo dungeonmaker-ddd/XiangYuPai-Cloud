@@ -1,0 +1,22 @@
+# APP认证服务配置
+spring:
+  application:
+    name: xypai-auth-app-auth
+  main:
+    allow-bean-definition-overriding: true  # 允许Bean覆盖，解决Feign冲突
+
+# Feign配置
+feign:
+  hystrix:
+    enabled: false
+  client:
+    config:
+      default:
+        connectTimeout: 10000
+        readTimeout: 10000
+        loggerLevel: basic
+
+# 日志配置
+logging:
+  level:
+    com.xypai.auth.app.auth.service.RemoteAppUserService: DEBUG

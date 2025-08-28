@@ -1,0 +1,140 @@
+# 🛡️ XY相遇派安全认证模块 Docker Compose
+# XV04:01 统一部署配置
+
+version: '3.8'
+
+services:
+  # 🛡️ OAuth2认证核心服务
+  security-oauth:
+    build:
+      context: ./security-oauth
+      dockerfile: Dockerfile
+    container_name: xypai-security-oauth
+    ports:
+      - "9401:9401"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - NACOS_SERVER_ADDR=nacos:8848
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=ry-cloud
+      - MYSQL_USERNAME=root
+      - MYSQL_PASSWORD=password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DATABASE=1
+    depends_on:
+      - mysql
+      - redis
+      - nacos
+    networks:
+      - xypai-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9401/auth/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # 🌐 Web管理端服务
+  security-web:
+    build:
+      context: ./security-web
+      dockerfile: Dockerfile
+    container_name: xypai-security-web
+    ports:
+      - "9402:9402"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - NACOS_SERVER_ADDR=nacos:8848
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=ry-cloud
+      - MYSQL_USERNAME=root
+      - MYSQL_PASSWORD=password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DATABASE=2
+      - SECURITY_OAUTH_URL=http://security-oauth:9401
+    depends_on:
+      - security-oauth
+      - mysql
+      - redis
+      - nacos
+    networks:
+      - xypai-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9402/admin/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # 🗄️ MySQL数据库
+  mysql:
+    image: mysql:8.0
+    container_name: xypai-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=ry-cloud
+      - MYSQL_CHARACTER_SET_SERVER=utf8mb4
+      - MYSQL_COLLATION_SERVER=utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d
+    networks:
+      - xypai-network
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+
+  # 🗄️ Redis缓存
+  redis:
+    image: redis:7-alpine
+    container_name: xypai-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - xypai-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # 🌐 Nacos注册中心
+  nacos:
+    image: nacos/nacos-server:v2.2.3
+    container_name: xypai-nacos
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+    environment:
+      - MODE=standalone
+      - PREFER_HOST_MODE=hostname
+      - SPRING_DATASOURCE_PLATFORM=mysql
+      - MYSQL_SERVICE_HOST=mysql
+      - MYSQL_SERVICE_DB_NAME=nacos
+      - MYSQL_SERVICE_USER=root
+      - MYSQL_SERVICE_PASSWORD=password
+    volumes:
+      - nacos_data:/home/nacos/data
+    depends_on:
+      - mysql
+    networks:
+      - xypai-network
+    restart: unless-stopped
+
+# 📊 数据卷
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  nacos_data:
+    driver: local
+
+# 🌐 网络
+networks:
+  xypai-network:
+    driver: bridge

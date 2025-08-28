@@ -1,0 +1,61 @@
+# 🛡️ XY相遇派安全认证中心 - 开发环境配置
+# XV02:08 开发环境专用配置
+
+spring:
+  # 🗄️ 数据源配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/ry-cloud?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+    username: root
+    password: password
+
+  # 🗄️ Redis配置
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password:
+    database: 1
+    timeout: 6000ms
+    lettuce:
+      pool:
+        max-active: 1000
+        max-wait: -1ms
+        max-idle: 10
+        min-idle: 5
+
+# 🔑 Token配置 - 整合原有TokenConfig
+auth:
+  token:
+    # Web端token过期时间（秒）- 2小时
+    web-expire-time: 7200
+    # App端token过期时间（秒）- 24小时  
+    app-expire-time: 86400
+    # 小程序token过期时间（秒）- 24小时
+    mini-expire-time: 86400
+
+# 🔐 OAuth2配置
+oauth2:
+  # JWT密钥
+  jwt:
+    secret: xypai-security-jwt-secret-key-2025
+    # 访问令牌过期时间（秒）
+    access-token-validity: ${auth.token.app-expire-time}
+    # 刷新令牌过期时间（秒）- 7天
+    refresh-token-validity: 604800
+
+# 📊 监控配置
+management:
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  endpoint:
+    metrics:
+      enabled: true
+
+# 📝 日志配置
+logging:
+  level:
+    com.xypai.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.security.jwt: DEBUG

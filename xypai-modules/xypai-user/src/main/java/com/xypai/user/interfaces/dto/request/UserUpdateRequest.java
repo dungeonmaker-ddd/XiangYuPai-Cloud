@@ -1,4 +1,4 @@
-package com.xypai.user.domain.record;
+package com.xypai.user.interfaces.dto.request;
 
 import jakarta.validation.constraints.*;
 import lombok.Builder;
@@ -8,13 +8,13 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 /**
- * APP用户更新请求（增强单表版本）
+ * 用户更新请求（增强单表版本）
  * 支持Builder模式，使用更加灵活
  *
  * @author XyPai
  */
 @Builder
-public record AppUserUpdateRequest(
+public record UserUpdateRequest(
         @NotNull(message = "用户ID不能为空")
         Long userId,
 
@@ -77,7 +77,7 @@ public record AppUserUpdateRequest(
         @Size(max = 10, message = "语言代码不能超过10个字符")
         String language
 ) {
-    public AppUserUpdateRequest {
+    public UserUpdateRequest {
         Objects.requireNonNull(userId, "用户ID不能为null");
 
         // 验证生日不能是未来日期
@@ -93,8 +93,8 @@ public record AppUserUpdateRequest(
     /**
      * 仅更新昵称
      */
-    public static AppUserUpdateRequest updateNickname(Long userId, String nickname) {
-        return AppUserUpdateRequest.builder()
+    public static UserUpdateRequest updateNickname(Long userId, String nickname) {
+        return UserUpdateRequest.builder()
                 .userId(userId)
                 .nickname(nickname)
                 .build();
@@ -103,8 +103,8 @@ public record AppUserUpdateRequest(
     /**
      * 仅更新头像
      */
-    public static AppUserUpdateRequest updateAvatar(Long userId, String avatar) {
-        return AppUserUpdateRequest.builder()
+    public static UserUpdateRequest updateAvatar(Long userId, String avatar) {
+        return UserUpdateRequest.builder()
                 .userId(userId)
                 .avatar(avatar)
                 .build();
@@ -113,8 +113,8 @@ public record AppUserUpdateRequest(
     /**
      * 更新基础信息
      */
-    public static AppUserUpdateRequest updateBasic(Long userId, String nickname, Integer gender) {
-        return AppUserUpdateRequest.builder()
+    public static UserUpdateRequest updateBasic(Long userId, String nickname, Integer gender) {
+        return UserUpdateRequest.builder()
                 .userId(userId)
                 .nickname(nickname)
                 .gender(gender)
@@ -124,8 +124,8 @@ public record AppUserUpdateRequest(
     /**
      * 更新联系信息
      */
-    public static AppUserUpdateRequest updateContact(Long userId, String email, String wechat) {
-        return AppUserUpdateRequest.builder()
+    public static UserUpdateRequest updateContact(Long userId, String email, String wechat) {
+        return UserUpdateRequest.builder()
                 .userId(userId)
                 .email(email)
                 .wechat(wechat)
@@ -135,8 +135,8 @@ public record AppUserUpdateRequest(
     /**
      * 更新个人资料
      */
-    public static AppUserUpdateRequest updateProfile(Long userId, String realName, String occupation, String location) {
-        return AppUserUpdateRequest.builder()
+    public static UserUpdateRequest updateProfile(Long userId, String realName, String occupation, String location) {
+        return UserUpdateRequest.builder()
                 .userId(userId)
                 .realName(realName)
                 .occupation(occupation)
@@ -147,8 +147,8 @@ public record AppUserUpdateRequest(
     /**
      * 更新身体信息
      */
-    public static AppUserUpdateRequest updatePhysical(Long userId, BigDecimal height, BigDecimal weight) {
-        return AppUserUpdateRequest.builder()
+    public static UserUpdateRequest updatePhysical(Long userId, BigDecimal height, BigDecimal weight) {
+        return UserUpdateRequest.builder()
                 .userId(userId)
                 .height(height)
                 .weight(weight)

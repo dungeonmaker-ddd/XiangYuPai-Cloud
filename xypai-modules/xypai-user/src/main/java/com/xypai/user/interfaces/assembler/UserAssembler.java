@@ -1,27 +1,27 @@
-package com.xypai.user.converter;
+package com.xypai.user.interfaces.assembler;
 
-import com.xypai.user.domain.entity.AppUser;
-import com.xypai.user.domain.record.AppUserRegisterRequest;
-import com.xypai.user.domain.record.AppUserResponse;
-import com.xypai.user.domain.record.AppUserUpdateRequest;
+import com.xypai.user.domain.user.entity.AppUser;
+import com.xypai.user.interfaces.dto.request.UserRegisterRequest;
+import com.xypai.user.interfaces.dto.request.UserUpdateRequest;
+import com.xypai.user.interfaces.dto.response.DetailedUserResponse;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * APP用户转换器
- * 负责实体与Record之间的转换
+ * 用户转换器
+ * 负责实体与DTO之间的转换
  *
  * @author XyPai
  */
 @Component
-public class AppUserConverter {
+public class UserAssembler {
 
     /**
      * 注册请求转实体（现代化Builder方式）
      */
-    public AppUser toEntity(AppUserRegisterRequest request) {
+    public AppUser toEntity(UserRegisterRequest request) {
         Objects.requireNonNull(request, "注册请求不能为null");
 
         return AppUser.builder()
@@ -38,44 +38,44 @@ public class AppUserConverter {
     /**
      * 实体转响应（增强单表版本）
      */
-    public AppUserResponse toResponse(AppUser entity) {
+    public DetailedUserResponse toResponse(AppUser entity) {
         Objects.requireNonNull(entity, "用户实体不能为null");
 
-        return new AppUserResponse(
+        return DetailedUserResponse.builder()
                 // 基础信息
-                entity.getUserId(),
-                entity.getMobile(),
-                entity.getUsername(),
-                entity.getNickname(),
-                entity.getAvatar(),
-                entity.getGender(),
-                entity.getBirthDate(),
-                entity.getStatus(),
-                entity.getRegisterTime(),
-                entity.getLastLoginTime(),
-                entity.getClientType(),
+                .userId(entity.getUserId())
+                .mobile(entity.getMobile())
+                .username(entity.getUsername())
+                .nickname(entity.getNickname())
+                .avatar(entity.getAvatar())
+                .gender(entity.getGender())
+                .birthDate(entity.getBirthDate())
+                .status(entity.getStatus())
+                .registerTime(entity.getRegisterTime())
+                .lastLoginTime(entity.getLastLoginTime())
+                .clientType(entity.getClientType())
                 // 详细资料
-                entity.getRealName(),
-                entity.getEmail(),
-                entity.getWechat(),
-                entity.getOccupation(),
-                entity.getLocation(),
-                entity.getBio(),
-                entity.getInterests(),
-                entity.getHeight(),
-                entity.getWeight(),
-                entity.getNotificationPush(),
-                entity.getPrivacyLevel(),
-                entity.getLanguage(),
-                entity.getCreateTime(),
-                entity.getUpdateTime()
-        );
+                .realName(entity.getRealName())
+                .email(entity.getEmail())
+                .wechat(entity.getWechat())
+                .occupation(entity.getOccupation())
+                .location(entity.getLocation())
+                .bio(entity.getBio())
+                .interests(entity.getInterests())
+                .height(entity.getHeight())
+                .weight(entity.getWeight())
+                .notificationPush(entity.getNotificationPush())
+                .privacyLevel(entity.getPrivacyLevel())
+                .language(entity.getLanguage())
+                .createTime(entity.getCreateTime())
+                .updateTime(entity.getUpdateTime())
+                .build();
     }
 
     /**
      * 更新请求应用到实体（增强单表版本）
      */
-    public void updateEntity(AppUser entity, AppUserUpdateRequest request) {
+    public void updateEntity(AppUser entity, UserUpdateRequest request) {
         Objects.requireNonNull(entity, "用户实体不能为null");
         Objects.requireNonNull(request, "更新请求不能为null");
 

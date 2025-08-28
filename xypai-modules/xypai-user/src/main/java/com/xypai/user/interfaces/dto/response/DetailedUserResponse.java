@@ -1,4 +1,4 @@
-package com.xypai.user.domain.record;
+package com.xypai.user.interfaces.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
@@ -9,13 +9,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * APP用户响应（增强单表版本）
+ * 详细用户响应（增强单表版本）
  * 支持Builder模式，方便构建和测试
  *
  * @author XyPai
  */
 @Builder
-public record AppUserResponse(
+public record DetailedUserResponse(
         // 基础信息
         Long userId,
         String mobile,

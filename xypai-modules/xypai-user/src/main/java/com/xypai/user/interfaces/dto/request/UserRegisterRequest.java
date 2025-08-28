@@ -1,4 +1,4 @@
-package com.xypai.user.domain.record;
+package com.xypai.user.interfaces.dto.request;
 
 import jakarta.validation.constraints.*;
 
@@ -6,11 +6,11 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 /**
- * APP用户注册请求
+ * 用户注册请求
  *
  * @author XyPai
  */
-public record AppUserRegisterRequest(
+public record UserRegisterRequest(
         @NotBlank(message = "手机号不能为空")
         @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
         String mobile,
@@ -35,7 +35,7 @@ public record AppUserRegisterRequest(
         @Pattern(regexp = "^(web|app|mini)$", message = "客户端类型只能是web、app或mini")
         String clientType
 ) {
-    public AppUserRegisterRequest {
+    public UserRegisterRequest {
         Objects.requireNonNull(mobile, "手机号不能为null");
         Objects.requireNonNull(nickname, "昵称不能为null");
         Objects.requireNonNull(clientType, "客户端类型不能为null");
@@ -51,7 +51,7 @@ public record AppUserRegisterRequest(
         }
     }
 
-    public static AppUserRegisterRequest of(String mobile, String nickname, String clientType) {
-        return new AppUserRegisterRequest(mobile, null, nickname, null, 0, null, clientType);
+    public static UserRegisterRequest of(String mobile, String nickname, String clientType) {
+        return new UserRegisterRequest(mobile, null, nickname, null, 0, null, clientType);
     }
 }

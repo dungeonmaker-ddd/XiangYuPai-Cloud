@@ -1,4 +1,4 @@
-package com.xypai.user.domain.user.entity;
+package com.xypai.user.infrastructure.persistence.po;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -11,39 +11,36 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * APP用户实体类 - 2025年现代化版本
- * 使用Lombok大幅简化代码，减少样板代码
+ * 用户持久化对象 - 基础设施层
+ * <p>
+ * 职责：数据库映射和持久化
  *
  * @author XyPai
  */
-@Data                           // 自动生成getter/setter/toString/equals/hashCode
-@NoArgsConstructor             // 生成无参构造器
-@AllArgsConstructor            // 生成全参构造器
-@Builder                       // 支持Builder模式
-@Accessors(chain = true)       // 支持链式调用
-@EqualsAndHashCode(onlyExplicitlyIncluded = true) // 只包含指定字段
-@ToString(exclude = {"deleted", "deleteTime"})    // 排除敏感字段
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Accessors(chain = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(exclude = {"deleted", "deleteTime"})
 @TableName("app_user")
-public class AppUser implements Serializable {
+public class UserPO implements Serializable {
 
     private static final long serialVersionUID = 1L;
-
-    // ========================================
-    // 基础信息
-    // ========================================
 
     /**
      * 用户ID
      */
     @TableId(value = "user_id", type = IdType.AUTO)
-    @EqualsAndHashCode.Include  // 只用ID做equals/hashCode
+    @EqualsAndHashCode.Include
     private Long userId;
 
     /**
      * 手机号（唯一）
      */
     @TableField("mobile")
-    @NonNull  // Lombok null检查
+    @NonNull
     private String mobile;
 
     /**
@@ -69,7 +66,7 @@ public class AppUser implements Serializable {
      * 性别 0-未知 1-男 2-女
      */
     @TableField("gender")
-    @Builder.Default  // Builder模式默认值
+    @Builder.Default
     private Integer gender = 0;
 
     /**
@@ -175,31 +172,8 @@ public class AppUser implements Serializable {
     private LocalDateTime updateTime;
 
     // ========================================
-    // 业务方法（现代化）
+    // 持久化辅助方法
     // ========================================
-
-    /**
-     * 创建新用户
-     */
-    public static AppUser createUser(String mobile, String nickname) {
-        return AppUser.builder()
-                .mobile(mobile)
-                .nickname(nickname)
-                .build();
-    }
-
-    /**
-     * 从注册请求创建用户
-     */
-    public static AppUser fromRegisterRequest(String mobile, String nickname,
-                                              Integer gender, String clientType) {
-        return AppUser.builder()
-                .mobile(mobile)
-                .nickname(nickname)
-                .gender(gender != null ? gender : 0)
-                .clientType(clientType != null ? clientType : "app")
-                .build();
-    }
 
     /**
      * 检查用户是否正常
@@ -218,20 +192,16 @@ public class AppUser implements Serializable {
     /**
      * 软删除用户
      */
-    public AppUser softDelete() {
+    public UserPO softDelete() {
         this.deleted = 1;
         this.deleteTime = LocalDateTime.now();
         return this;
     }
 
-    // ========================================
-    // 静态工厂方法
-    // ========================================
-
     /**
      * 恢复用户
      */
-    public AppUser restore() {
+    public UserPO restore() {
         this.deleted = 0;
         this.deleteTime = null;
         return this;
@@ -240,7 +210,7 @@ public class AppUser implements Serializable {
     /**
      * 更新最后登录时间
      */
-    public AppUser updateLastLogin() {
+    public UserPO updateLastLogin() {
         this.lastLoginTime = LocalDateTime.now();
         return this;
     }

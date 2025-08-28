@@ -1,4 +1,4 @@
-package com.xypai.user.domain.shared.service;
+package com.xypai.user.infrastructure.cache;
 
 import java.time.Duration;
 import java.util.List;

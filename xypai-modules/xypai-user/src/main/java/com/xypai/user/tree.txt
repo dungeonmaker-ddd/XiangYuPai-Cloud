@@ -3,7 +3,7 @@
 C:.
 ©¦  FINAL_DDD_STRUCTURE.txt
 ©¦  tree.txt
-©¦  XyPaiUserApplication.java
+©¦  UserApplication.java
 ©¦  
 ©À©¤application
 ©¦  ©À©¤activity
@@ -61,11 +61,6 @@ C:.
 ©¦      MybatisPlusConfig.java
 ©¦      
 ©À©¤controller
-©¦      AppUserController.java
-©¦      
-©À©¤converter
-©¦      AppUserConverter.java
-©¦      
 ©À©¤domain
 ©¦  ©À©¤activity
 ©¦  ©¦  ©¦  ActivityAggregate.java
@@ -123,12 +118,6 @@ C:.
 ©¦  ©¦          InteractionId.java
 ©¦  ©¦          TargetId.java
 ©¦  ©¦          
-©¦  ©À©¤record
-©¦  ©¦      AppUserQueryRequest.java
-©¦  ©¦      AppUserRegisterRequest.java
-©¦  ©¦      AppUserResponse.java
-©¦  ©¦      AppUserUpdateRequest.java
-©¦  ©¦      
 ©¦  ©À©¤shared
 ©¦  ©¦  ©¦  ActivityCreatedEvent.java
 ©¦  ©¦  ©¦  ActivityJoinedEvent.java
@@ -170,6 +159,7 @@ C:.
 ©¦  ©¦  ©¦  
 ©¦  ©¦  ©À©¤entity
 ©¦  ©¦  ©¦      AppUser.java
+©¦  ©¦  ©¦      User.java
 ©¦  ©¦  ©¦      
 ©¦  ©¦  ©À©¤enums
 ©¦  ©¦  ©À©¤event
@@ -201,6 +191,8 @@ C:.
 ©¦              
 ©À©¤infrastructure
 ©¦  ©À©¤cache
+©¦  ©¦  ©¦  CacheService.java
+©¦  ©¦  ©¦  
 ©¦  ©¦  ©À©¤feed
 ©¦  ©¦  ©¦      FeedTimelineCacheService.java
 ©¦  ©¦  ©¦      
@@ -221,6 +213,7 @@ C:.
 ©¦  ©¦      CacheEventListener.java
 ©¦  ©¦      DomainEventPublisherImpl.java
 ©¦  ©¦      
+©¦  ©À©¤persistence
 ©¦  ©¸©¤repository
 ©¦      ©À©¤activity
 ©¦      ©¦      ActivityRepositoryImpl.java
@@ -271,6 +264,30 @@ C:.
 ©¦      ©¦      UserController.java
 ©¦      ©¦      
 ©¦      ©¸©¤wallet
+©À©¤interfaces
+©¦  ©À©¤assembler
+©¦  ©¦      UserAssembler.java
+©¦  ©¦      
+©¦  ©À©¤dto
+©¦  ©¦  ©À©¤request
+©¦  ©¦  ©¦      UserQueryRequest.java
+©¦  ©¦  ©¦      UserRegisterRequest.java
+©¦  ©¦  ©¦      UserUpdateRequest.java
+©¦  ©¦  ©¦      
+©¦  ©¦  ©¸©¤response
+©¦  ©¦          DetailedUserResponse.java
+©¦  ©¦          FeedResponse.java
+©¦  ©¦          SocialStatsResponse.java
+©¦  ©¦          UserResponse.java
+©¦  ©¦          
+©¦  ©À©¤facade
+©¦  ©¸©¤web
+©¦      ©À©¤legacy
+©¦      ©¦      LegacyUserController.java
+©¦      ©¦      
+©¦      ©¸©¤user
+©¦              UserController.java
+©¦              
 ©À©¤mapper
 ©¦      ActivityMapper.java
 ©¦      AppUserMapper.java

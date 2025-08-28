@@ -15,10 +15,10 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 @EnableRyFeignClients
 @EnableDiscoveryClient
 @SpringBootApplication
-public class XyPaiUserApplication {
+public class UserApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(XyPaiUserApplication.class, args);
+        SpringApplication.run(UserApplication.class, args);
         System.out.println("(♥◠‿◠)ﾉﾞ  用户中心启动成功   ლ(´ڡ`ლ)ﾞ");
     }
 }

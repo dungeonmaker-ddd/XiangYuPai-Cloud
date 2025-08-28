@@ -1,4 +1,4 @@
-package com.xypai.user.domain.record;
+package com.xypai.user.interfaces.dto.request;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -8,11 +8,11 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 /**
- * APP用户查询请求
+ * 用户查询请求
  *
  * @author XyPai
  */
-public record AppUserQueryRequest(
+public record UserQueryRequest(
         @Min(value = 1, message = "页码必须大于0")
         Integer pageNum,
 
@@ -44,7 +44,7 @@ public record AppUserQueryRequest(
         @Pattern(regexp = "^(web|app|mini)$", message = "客户端类型只能是web、app或mini")
         String clientType
 ) {
-    public AppUserQueryRequest {
+    public UserQueryRequest {
         // 设置默认分页参数
         if (pageNum == null) {
             pageNum = 1;
@@ -64,32 +64,32 @@ public record AppUserQueryRequest(
     /**
      * 创建基础分页查询
      */
-    public static AppUserQueryRequest pageQuery(Integer pageNum, Integer pageSize) {
-        return new AppUserQueryRequest(pageNum, pageSize, null, null, null, null,
+    public static UserQueryRequest pageQuery(Integer pageNum, Integer pageSize) {
+        return new UserQueryRequest(pageNum, pageSize, null, null, null, null,
                 null, null, null, null);
     }
 
     /**
      * 按手机号查询
      */
-    public static AppUserQueryRequest byMobile(String mobile) {
-        return new AppUserQueryRequest(1, 1, mobile, null, null, null,
+    public static UserQueryRequest byMobile(String mobile) {
+        return new UserQueryRequest(1, 1, mobile, null, null, null,
                 null, null, null, null);
     }
 
     /**
      * 按状态查询
      */
-    public static AppUserQueryRequest byStatus(Integer status, Integer pageNum, Integer pageSize) {
-        return new AppUserQueryRequest(pageNum, pageSize, null, null, null, null,
+    public static UserQueryRequest byStatus(Integer status, Integer pageNum, Integer pageSize) {
+        return new UserQueryRequest(pageNum, pageSize, null, null, null, null,
                 status, null, null, null);
     }
 
     /**
      * 按客户端类型查询
      */
-    public static AppUserQueryRequest byClientType(String clientType, Integer pageNum, Integer pageSize) {
-        return new AppUserQueryRequest(pageNum, pageSize, null, null, null, null,
+    public static UserQueryRequest byClientType(String clientType, Integer pageNum, Integer pageSize) {
+        return new UserQueryRequest(pageNum, pageSize, null, null, null, null,
                 null, null, null, clientType);
     }
 }

@@ -1,6 +1,6 @@
 package com.xypai.user.domain.shared;
 
-import com.xypai.user.domain.enums.FeedType;
+import com.xypai.user.domain.feed.enums.FeedType;
 import com.xypai.user.domain.valueobject.FeedId;
 import com.xypai.user.domain.valueobject.UserId;
 

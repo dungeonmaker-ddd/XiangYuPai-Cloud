@@ -1,6 +1,6 @@
 package com.xypai.user.domain.shared;
 
-import com.xypai.user.domain.enums.TargetType;
+import com.xypai.user.domain.interaction.enums.TargetType;
 import com.xypai.user.domain.valueobject.TargetId;
 import com.xypai.user.domain.valueobject.UserId;
 

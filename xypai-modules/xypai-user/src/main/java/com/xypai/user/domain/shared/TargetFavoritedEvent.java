@@ -1,8 +1,8 @@
 package com.xypai.user.domain.shared;
 
-import com.xypai.user.domain.enums.TargetType;
+import com.xypai.user.domain.interaction.enums.TargetType;
+import com.xypai.user.domain.user.valueobject.UserId;
 import com.xypai.user.domain.valueobject.TargetId;
-import com.xypai.user.domain.valueobject.UserId;
 
 import java.time.Instant;
 import java.util.UUID;

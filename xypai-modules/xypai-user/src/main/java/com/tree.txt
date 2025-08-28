@@ -1,165 +1,165 @@
-¾í ÏµÍ³ µÄÎÄ¼þ¼Ð PATH ÁÐ±í
-¾íÐòÁÐºÅÎª FE46-EF7B
+ï¿½ï¿½ ÏµÍ³ ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ PATH ï¿½Ð±ï¿½
+ï¿½ï¿½ï¿½ï¿½ï¿½Ðºï¿½Îª FE46-EF7B
 C:.
-©¦  tree.txt
-©¦  
-©¸©¤xypai
-    ©¸©¤user
-        ©¦  XyPaiUserApplication.java
-        ©¦  
-        ©À©¤application
-        ©¦  ©À©¤command
-        ©¦  ©¦      AddCommentCommand.java
-        ©¦  ©¦      CreateFeedCommand.java
-        ©¦  ©¦      CreateUserCommand.java
-        ©¦  ©¦      FavoriteTargetCommand.java
-        ©¦  ©¦      FollowUserCommand.java
-        ©¦  ©¦      LikeTargetCommand.java
-        ©¦  ©¦      PublishFeedCommand.java
-        ©¦  ©¦      UnfavoriteTargetCommand.java
-        ©¦  ©¦      UnfollowUserCommand.java
-        ©¦  ©¦      UnlikeTargetCommand.java
-        ©¦  ©¦      UpdateFeedCommand.java
-        ©¦  ©¦      UpdateFeedSettingsCommand.java
-        ©¦  ©¦      UpdateSocialSettingsCommand.java
-        ©¦  ©¦      UpdateUserCommand.java
-        ©¦  ©¦      
-        ©¦  ©¸©¤service
-        ©¦          FeedApplicationService.java
-        ©¦          InteractionApplicationService.java
-        ©¦          SocialApplicationService.java
-        ©¦          UserApplicationService.java
-        ©¦          
-        ©À©¤config
-        ©¦      MybatisPlusConfig.java
-        ©¦      
-        ©À©¤controller
-        ©¦      AppUserController.java
-        ©¦      
-        ©À©¤converter
-        ©¦      AppUserConverter.java
-        ©¦      
-        ©À©¤domain
-        ©¦  ©À©¤aggregate
-        ©¦  ©¦      ActivityAggregate.java
-        ©¦  ©¦      FeedAggregate.java
-        ©¦  ©¦      InteractionAggregate.java
-        ©¦  ©¦      SocialAggregate.java
-        ©¦  ©¦      UserAggregate.java
-        ©¦  ©¦      WalletAggregate.java
-        ©¦  ©¦      
-        ©¦  ©À©¤entity
-        ©¦  ©¦      ActivityInfo.java
-        ©¦  ©¦      ActivityParticipant.java
-        ©¦  ©¦      ActivitySettings.java
-        ©¦  ©¦      AppUser.java
-        ©¦  ©¦      CommentRecord.java
-        ©¦  ©¦      FavoriteRecord.java
-        ©¦  ©¦      FeedContent.java
-        ©¦  ©¦      FeedSettings.java
-        ©¦  ©¦      FollowRelation.java
-        ©¦  ©¦      LikeRecord.java
-        ©¦  ©¦      SocialSettings.java
-        ©¦  ©¦      Transaction.java
-        ©¦  ©¦      WalletSettings.java
-        ©¦  ©¦      
-        ©¦  ©À©¤enums
-        ©¦  ©¦      ActivityStatus.java
-        ©¦  ©¦      ActivityType.java
-        ©¦  ©¦      FeedStatus.java
-        ©¦  ©¦      FeedType.java
-        ©¦  ©¦      TargetType.java
-        ©¦  ©¦      TransactionStatus.java
-        ©¦  ©¦      TransactionType.java
-        ©¦  ©¦      WalletStatus.java
-        ©¦  ©¦      
-        ©¦  ©À©¤record
-        ©¦  ©¦      AppUserQueryRequest.java
-        ©¦  ©¦      AppUserRegisterRequest.java
-        ©¦  ©¦      AppUserResponse.java
-        ©¦  ©¦      AppUserUpdateRequest.java
-        ©¦  ©¦      
-        ©¦  ©À©¤repository
-        ©¦  ©¦      FeedRepository.java
-        ©¦  ©¦      InteractionRepository.java
-        ©¦  ©¦      SocialRepository.java
-        ©¦  ©¦      UserRepository.java
-        ©¦  ©¦      
-        ©¦  ©À©¤service
-        ©¦  ©¦      CacheService.java
-        ©¦  ©¦      DomainEventPublisher.java
-        ©¦  ©¦      
-        ©¦  ©À©¤shared
-        ©¦  ©¦      ActivityCreatedEvent.java
-        ©¦  ©¦      ActivityJoinedEvent.java
-        ©¦  ©¦      ActivityPublishedEvent.java
-        ©¦  ©¦      DomainEvent.java
-        ©¦  ©¦      FeedPublishedEvent.java
-        ©¦  ©¦      TargetFavoritedEvent.java
-        ©¦  ©¦      TargetLikedEvent.java
-        ©¦  ©¦      TargetUnfavoritedEvent.java
-        ©¦  ©¦      TargetUnlikedEvent.java
-        ©¦  ©¦      UserCreatedEvent.java
-        ©¦  ©¦      UserFollowedEvent.java
-        ©¦  ©¦      UserUnfollowedEvent.java
-        ©¦  ©¦      UserUpdatedEvent.java
-        ©¦  ©¦      WalletRechargedEvent.java
-        ©¦  ©¦      WalletTransferredEvent.java
-        ©¦  ©¦      
-        ©¦  ©¸©¤valueobject
-        ©¦          ActivityId.java
-        ©¦          FeedId.java
-        ©¦          InteractionId.java
-        ©¦          Money.java
-        ©¦          SocialId.java
-        ©¦          TargetId.java
-        ©¦          UserId.java
-        ©¦          WalletId.java
-        ©¦          
-        ©À©¤infrastructure
-        ©¦  ©À©¤cache
-        ©¦  ©¦      CacheKeys.java
-        ©¦  ©¦      FeedTimelineCacheService.java
-        ©¦  ©¦      InteractionCacheService.java
-        ©¦  ©¦      RedisCacheService.java
-        ©¦  ©¦      SocialGraphCacheService.java
-        ©¦  ©¦      
-        ©¦  ©À©¤config
-        ©¦  ©¦      CacheConfig.java
-        ©¦  ©¦      
-        ©¦  ©À©¤event
-        ©¦  ©¦      CacheEventListener.java
-        ©¦  ©¦      DomainEventPublisherImpl.java
-        ©¦  ©¦      
-        ©¦  ©¸©¤repository
-        ©¦          SocialRepositoryImpl.java
-        ©¦          UserRepositoryImpl.java
-        ©¦          WalletRepositoryImpl.java
-        ©¦          
-        ©À©¤insurance
-        ©¦  ©À©¤dto
-        ©¦  ©¦      FeedResponse.java
-        ©¦  ©¦      InteractionStatusResponse.java
-        ©¦  ©¦      SocialStatsResponse.java
-        ©¦  ©¦      UserResponse.java
-        ©¦  ©¦      
-        ©¦  ©¸©¤web
-        ©¦          FeedController.java
-        ©¦          InteractionController.java
-        ©¦          SocialController.java
-        ©¦          UserController.java
-        ©¦          
-        ©À©¤mapper
-        ©¦      ActivityMapper.java
-        ©¦      AppUserMapper.java
-        ©¦      SocialRelationMapper.java
-        ©¦      WalletMapper.java
-        ©¦      
-        ©À©¤service
-        ©¦  ©¦  AppUserService.java
-        ©¦  ©¦  
-        ©¦  ©¸©¤impl
-        ©¦          AppUserServiceImpl.java
-        ©¦          
-        ©À©¤utils
-        ©¸©¤validator
+ï¿½ï¿½  tree.txt
+ï¿½ï¿½  
+ï¿½ï¿½ï¿½ï¿½xypai
+    ï¿½ï¿½ï¿½ï¿½user
+        ï¿½ï¿½  XyPaiUserApplication.java
+        ï¿½ï¿½  
+        ï¿½ï¿½ï¿½ï¿½application
+        ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½command
+        ï¿½ï¿½  ï¿½ï¿½      AddCommentCommand.java
+        ï¿½ï¿½  ï¿½ï¿½      CreateFeedCommand.java
+        ï¿½ï¿½  ï¿½ï¿½      CreateUserCommand.java
+        ï¿½ï¿½  ï¿½ï¿½      FavoriteTargetCommand.java
+        ï¿½ï¿½  ï¿½ï¿½      FollowUserCommand.java
+        ï¿½ï¿½  ï¿½ï¿½      LikeTargetCommand.java
+        ï¿½ï¿½  ï¿½ï¿½      PublishFeedCommand.java
+        ï¿½ï¿½  ï¿½ï¿½      UnfavoriteTargetCommand.java
+        ï¿½ï¿½  ï¿½ï¿½      UnfollowUserCommand.java
+        ï¿½ï¿½  ï¿½ï¿½      UnlikeTargetCommand.java
+        ï¿½ï¿½  ï¿½ï¿½      UpdateFeedCommand.java
+        ï¿½ï¿½  ï¿½ï¿½      UpdateFeedSettingsCommand.java
+        ï¿½ï¿½  ï¿½ï¿½      UpdateSocialSettingsCommand.java
+        ï¿½ï¿½  ï¿½ï¿½      UpdateUserCommand.java
+        ï¿½ï¿½  ï¿½ï¿½      
+        ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½service
+        ï¿½ï¿½          FeedApplicationService.java
+        ï¿½ï¿½          InteractionApplicationService.java
+        ï¿½ï¿½          SocialApplicationService.java
+        ï¿½ï¿½          UserApplicationService.java
+        ï¿½ï¿½          
+        ï¿½ï¿½ï¿½ï¿½config
+        ï¿½ï¿½      MybatisPlusConfig.java
+        ï¿½ï¿½      
+        ï¿½ï¿½ï¿½ï¿½controller
+        ï¿½ï¿½      AppUserController.java
+        ï¿½ï¿½      
+        ï¿½ï¿½ï¿½ï¿½converter
+        ï¿½ï¿½      AppUserConverter.java
+        ï¿½ï¿½      
+        ï¿½ï¿½ï¿½ï¿½domain
+        ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½aggregate
+        ï¿½ï¿½  ï¿½ï¿½      ActivityAggregate.java
+        ï¿½ï¿½  ï¿½ï¿½      FeedAggregate.java
+        ï¿½ï¿½  ï¿½ï¿½      InteractionAggregate.java
+        ï¿½ï¿½  ï¿½ï¿½      SocialAggregate.java
+        ï¿½ï¿½  ï¿½ï¿½      UserAggregate.java
+        ï¿½ï¿½  ï¿½ï¿½      WalletAggregate.java
+        ï¿½ï¿½  ï¿½ï¿½      
+        ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½entity
+        ï¿½ï¿½  ï¿½ï¿½      ActivityInfo.java
+        ï¿½ï¿½  ï¿½ï¿½      ActivityParticipant.java
+        ï¿½ï¿½  ï¿½ï¿½      ActivitySettings.java
+        ï¿½ï¿½  ï¿½ï¿½      AppUser.java
+        ï¿½ï¿½  ï¿½ï¿½      CommentRecord.java
+        ï¿½ï¿½  ï¿½ï¿½      FavoriteRecord.java
+        ï¿½ï¿½  ï¿½ï¿½      FeedContent.java
+        ï¿½ï¿½  ï¿½ï¿½      FeedSettings.java
+        ï¿½ï¿½  ï¿½ï¿½      FollowRelation.java
+        ï¿½ï¿½  ï¿½ï¿½      LikeRecord.java
+        ï¿½ï¿½  ï¿½ï¿½      SocialSettings.java
+        ï¿½ï¿½  ï¿½ï¿½      Transaction.java
+        ï¿½ï¿½  ï¿½ï¿½      WalletSettings.java
+        ï¿½ï¿½  ï¿½ï¿½      
+        ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½enums
+        ï¿½ï¿½  ï¿½ï¿½      ActivityStatus.java
+        ï¿½ï¿½  ï¿½ï¿½      ActivityType.java
+        ï¿½ï¿½  ï¿½ï¿½      FeedStatus.java
+        ï¿½ï¿½  ï¿½ï¿½      FeedType.java
+        ï¿½ï¿½  ï¿½ï¿½      TargetType.java
+        ï¿½ï¿½  ï¿½ï¿½      TransactionStatus.java
+        ï¿½ï¿½  ï¿½ï¿½      TransactionType.java
+        ï¿½ï¿½  ï¿½ï¿½      WalletStatus.java
+        ï¿½ï¿½  ï¿½ï¿½      
+        ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½record
+        ï¿½ï¿½  ï¿½ï¿½      AppUserQueryRequest.java
+        ï¿½ï¿½  ï¿½ï¿½      AppUserRegisterRequest.java
+        ï¿½ï¿½  ï¿½ï¿½      AppUserResponse.java
+        ï¿½ï¿½  ï¿½ï¿½      AppUserUpdateRequest.java
+        ï¿½ï¿½  ï¿½ï¿½      
+        ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½repository
+        ï¿½ï¿½  ï¿½ï¿½      FeedRepository.java
+        ï¿½ï¿½  ï¿½ï¿½      InteractionRepository.java
+        ï¿½ï¿½  ï¿½ï¿½      SocialRepository.java
+        ï¿½ï¿½  ï¿½ï¿½      UserRepository.java
+        ï¿½ï¿½  ï¿½ï¿½      
+        ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½service
+        ï¿½ï¿½  ï¿½ï¿½      CacheService.java
+        ï¿½ï¿½  ï¿½ï¿½      DomainEventPublisher.java
+        ï¿½ï¿½  ï¿½ï¿½      
+        ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½shared
+        ï¿½ï¿½  ï¿½ï¿½      ActivityCreatedEvent.java
+        ï¿½ï¿½  ï¿½ï¿½      ActivityJoinedEvent.java
+        ï¿½ï¿½  ï¿½ï¿½      ActivityPublishedEvent.java
+        ï¿½ï¿½  ï¿½ï¿½      DomainEvent.java
+        ï¿½ï¿½  ï¿½ï¿½      FeedPublishedEvent.java
+        ï¿½ï¿½  ï¿½ï¿½      TargetFavoritedEvent.java
+        ï¿½ï¿½  ï¿½ï¿½      TargetLikedEvent.java
+        ï¿½ï¿½  ï¿½ï¿½      TargetUnfavoritedEvent.java
+        ï¿½ï¿½  ï¿½ï¿½      TargetUnlikedEvent.java
+        ï¿½ï¿½  ï¿½ï¿½      UserCreatedEvent.java
+        ï¿½ï¿½  ï¿½ï¿½      UserFollowedEvent.java
+        ï¿½ï¿½  ï¿½ï¿½      UserUnfollowedEvent.java
+        ï¿½ï¿½  ï¿½ï¿½      UserUpdatedEvent.java
+        ï¿½ï¿½  ï¿½ï¿½      WalletRechargedEvent.java
+        ï¿½ï¿½  ï¿½ï¿½      WalletTransferredEvent.java
+        ï¿½ï¿½  ï¿½ï¿½      
+        ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½valueobject
+        ï¿½ï¿½          ActivityId.java
+        ï¿½ï¿½          FeedId.java
+        ï¿½ï¿½          InteractionId.java
+        ï¿½ï¿½          Money.java
+        ï¿½ï¿½          SocialId.java
+        ï¿½ï¿½          TargetId.java
+        ï¿½ï¿½          UserId.java
+        ï¿½ï¿½          WalletId.java
+        ï¿½ï¿½          
+        ï¿½ï¿½ï¿½ï¿½infrastructure
+        ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½cache
+        ï¿½ï¿½  ï¿½ï¿½      CacheKeys.java
+        ï¿½ï¿½  ï¿½ï¿½      FeedTimelineCacheService.java
+        ï¿½ï¿½  ï¿½ï¿½      InteractionCacheService.java
+        ï¿½ï¿½  ï¿½ï¿½      RedisCacheService.java
+        ï¿½ï¿½  ï¿½ï¿½      SocialGraphCacheService.java
+        ï¿½ï¿½  ï¿½ï¿½      
+        ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½config
+        ï¿½ï¿½  ï¿½ï¿½      CacheConfig.java
+        ï¿½ï¿½  ï¿½ï¿½      
+        ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½event
+        ï¿½ï¿½  ï¿½ï¿½      CacheEventListener.java
+        ï¿½ï¿½  ï¿½ï¿½      DomainEventPublisherImpl.java
+        ï¿½ï¿½  ï¿½ï¿½      
+        ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½repository
+        ï¿½ï¿½          SocialRepositoryImpl.java
+        ï¿½ï¿½          UserRepositoryImpl.java
+        ï¿½ï¿½          WalletRepositoryImpl.java
+        ï¿½ï¿½          
+        ï¿½ï¿½ï¿½ï¿½insurance
+        ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½dto
+        ï¿½ï¿½  ï¿½ï¿½      FeedResponse.java
+        ï¿½ï¿½  ï¿½ï¿½      InteractionStatusResponse.java
+        ï¿½ï¿½  ï¿½ï¿½      SocialStatsResponse.java
+        ï¿½ï¿½  ï¿½ï¿½      UserResponse.java
+        ï¿½ï¿½  ï¿½ï¿½      
+        ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½web
+        ï¿½ï¿½          FeedController.java
+        ï¿½ï¿½          InteractionController.java
+        ï¿½ï¿½          SocialController.java
+        ï¿½ï¿½          UserController.java
+        ï¿½ï¿½          
+        ï¿½ï¿½ï¿½ï¿½mapper
+        ï¿½ï¿½      ActivityMapper.java
+        ï¿½ï¿½      AppUserMapper.java
+        ï¿½ï¿½      SocialRelationMapper.java
+        ï¿½ï¿½      WalletMapper.java
+        ï¿½ï¿½      
+        ï¿½ï¿½ï¿½ï¿½service
+        ï¿½ï¿½  ï¿½ï¿½  AppUserService.java
+        ï¿½ï¿½  ï¿½ï¿½  
+        ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½impl
+        ï¿½ï¿½          AppUserServiceImpl.java
+        ï¿½ï¿½          
+        ï¿½ï¿½ï¿½ï¿½utils
+        ï¿½ï¿½ï¿½ï¿½validator

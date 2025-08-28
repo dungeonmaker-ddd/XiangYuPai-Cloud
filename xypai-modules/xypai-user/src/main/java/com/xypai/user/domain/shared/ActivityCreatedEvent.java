@@ -1,6 +1,6 @@
 package com.xypai.user.domain.shared;
 
-import com.xypai.user.domain.enums.ActivityType;
+import com.xypai.user.domain.activity.enums.ActivityType;
 import com.xypai.user.domain.valueobject.ActivityId;
 import com.xypai.user.domain.valueobject.UserId;
 

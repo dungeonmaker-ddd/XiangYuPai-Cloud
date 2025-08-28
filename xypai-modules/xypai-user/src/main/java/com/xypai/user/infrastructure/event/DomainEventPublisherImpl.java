@@ -1,7 +1,7 @@
 package com.xypai.user.infrastructure.event;
 
-import com.xypai.user.domain.service.DomainEventPublisher;
 import com.xypai.user.domain.shared.DomainEvent;
+import com.xypai.user.domain.shared.service.DomainEventPublisher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;

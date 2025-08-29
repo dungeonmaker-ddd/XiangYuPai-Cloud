@@ -36,8 +36,8 @@ public class AuthServiceImpl implements AuthService {
     
     @Override
     public Optional<AuthResponse> authenticate(AuthRequest authRequest) {
-        log.info("用户认证请求: username={}, clientType={}, authType={}", 
-                authRequest.username(), authRequest.clientType(), authRequest.authType());
+        log.info("用户认证请求: username={}, authType={}",
+                authRequest.username(), authRequest.authType());
         
         try {
             // MVP版本：简化认证逻辑
@@ -46,19 +46,18 @@ public class AuthServiceImpl implements AuthService {
                 log.warn("用户认证失败: {}", authRequest.username());
                 return Optional.empty();
             }
-            
-            // 生成令牌
+
+            // 生成令牌 - 使用默认过期时间
             String accessToken = generateAccessToken(userInfo);
             String refreshToken = generateRefreshToken(userInfo);
-            Long expiresIn = tokenProperties.getExpireTime(authRequest.clientType());
+            Long expiresIn = tokenProperties.getAppExpireTime(); // 使用App端默认时间
             
             // 存储令牌
             tokenStore.put(accessToken, userInfo);
             refreshTokenStore.put(refreshToken, accessToken);
             
             AuthResponse response = AuthResponse.of(accessToken, refreshToken, expiresIn, userInfo);
-            log.info("用户认证成功: username={}, clientType={}", 
-                    authRequest.username(), authRequest.clientType());
+            log.info("用户认证成功: username={}", authRequest.username());
             
             return Optional.of(response);
             
@@ -84,11 +83,11 @@ public class AuthServiceImpl implements AuthService {
             log.warn("令牌对应的用户信息不存在");
             return Optional.empty();
         }
-        
-        // 生成新令牌
+
+        // 生成新令牌 - 使用默认过期时间
         String newAccessToken = generateAccessToken(userInfo);
         String newRefreshToken = generateRefreshToken(userInfo);
-        Long expiresIn = tokenProperties.getExpireTime(clientType);
+        Long expiresIn = tokenProperties.getAppExpireTime();
         
         // 更新存储
         tokenStore.remove(oldAccessToken);
@@ -112,7 +111,6 @@ public class AuthServiceImpl implements AuthService {
         Map<String, Object> tokenInfo = Map.of(
             "valid", true,
             "username", userInfo.username(),
-            "clientType", userInfo.clientType(),
             "roles", userInfo.roles(),
             "permissions", userInfo.permissions()
         );
@@ -156,7 +154,6 @@ public class AuthServiceImpl implements AuthService {
                 "管理员",
                 "admin@xypai.com",
                 "13800138000",
-                authRequest.clientType(),
                 Set.of("ADMIN", "USER"),
                 Set.of("user:read", "user:write", "system:config"),
                 Instant.now()
@@ -173,7 +170,6 @@ public class AuthServiceImpl implements AuthService {
                 "普通用户",
                 "user@xypai.com",
                 "13800138001",
-                authRequest.clientType(),
                 Set.of("USER"),
                 Set.of("user:read"),
                 Instant.now()

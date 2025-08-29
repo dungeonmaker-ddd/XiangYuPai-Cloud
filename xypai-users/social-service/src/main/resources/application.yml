@@ -1,0 +1,74 @@
+# ==========================================
+# 🤝 社交服务配置 - DDD架构
+# 端口：9107
+# ==========================================
+
+server:
+  port: 9107
+
+spring:
+  application:
+    name: social-service
+  
+  # 数据源配置
+  datasource:
+    url: jdbc:mysql://localhost:3306/xypai_social?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      idle-timeout: 300000
+      connection-timeout: 30000
+  
+  # 服务发现
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: xypai
+        group: social-group
+        metadata:
+          version: 1.0.0-DDD
+          description: 社交关系管理服务
+
+# MyBatis Plus配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      table-prefix: ""
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# 日志配置
+logging:
+  level:
+    com.xypai.social: DEBUG
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{50}] - %msg%n"
+
+# 监控端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# 应用信息
+info:
+  app:
+    name: '@project.name@'
+    version: '@project.version@'
+    description: 🤝 社交服务 - DDD聚合根架构
+    port: 9107
+    aggregate: SocialAggregate

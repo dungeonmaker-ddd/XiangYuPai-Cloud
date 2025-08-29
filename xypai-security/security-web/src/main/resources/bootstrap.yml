@@ -12,10 +12,14 @@ spring:
     nacos:
       discovery:
         server-addr: 127.0.0.1:8848
+        username: nacos
+        password: nacos
         namespace: ${spring.profiles.active}
       config:
         server-addr: ${spring.cloud.nacos.discovery.server-addr}
         file-extension: yml
+        username: nacos
+        password: nacos
         namespace: ${spring.profiles.active}
 
 # 🔧 服务配置

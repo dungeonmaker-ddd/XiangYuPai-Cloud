@@ -25,8 +25,6 @@ public record AuthRequest(
         @Size(max = 128, message = "密码长度不能超过128")
         String password,
         
-        @NotBlank(message = "客户端类型不能为空")
-        @Pattern(regexp = "^(web|app|mini)$", message = "客户端类型只能是web、app或mini")
         @JsonProperty("client_type")
         String clientType,
         
@@ -47,12 +45,13 @@ public record AuthRequest(
      */
     public AuthRequest {
         Objects.requireNonNull(username, "用户标识不能为null");
-        Objects.requireNonNull(clientType, "客户端类型不能为null");
         Objects.requireNonNull(authType, "认证类型不能为null");
         
         // 标准化处理
         username = username.trim().toLowerCase();
-        clientType = clientType.trim().toLowerCase();
+        if (clientType != null) {
+            clientType = clientType.trim().toLowerCase();
+        }
         authType = authType.trim().toLowerCase();
         
         // 业务规则验证
@@ -78,22 +77,22 @@ public record AuthRequest(
     /**
      * 创建密码认证请求
      */
-    public static AuthRequest ofPassword(String username, String password, String clientType) {
-        return new AuthRequest(username, password, clientType, "password", null, null);
+    public static AuthRequest ofPassword(String username, String password) {
+        return new AuthRequest(username, password, null, "password", null, null);
     }
     
     /**
      * 创建短信认证请求
      */
-    public static AuthRequest ofSms(String mobile, String smsCode, String clientType) {
-        return new AuthRequest(mobile, null, clientType, "sms", smsCode, null);
+    public static AuthRequest ofSms(String mobile, String smsCode) {
+        return new AuthRequest(mobile, null, null, "sms", smsCode, null);
     }
     
     /**
      * 创建微信认证请求
      */
-    public static AuthRequest ofWechat(String openId, String wechatCode, String clientType) {
-        return new AuthRequest(openId, null, clientType, "wechat", null, wechatCode);
+    public static AuthRequest ofWechat(String openId, String wechatCode) {
+        return new AuthRequest(openId, null, null, "wechat", null, wechatCode);
     }
     
     /**

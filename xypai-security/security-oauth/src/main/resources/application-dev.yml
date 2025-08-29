@@ -1,7 +1,13 @@
 # 🛡️ XY相遇派安全认证中心 - 开发环境配置
 # XV02:08 开发环境专用配置
 
+
 spring:
+  # 🔐 Spring Security 用户配置
+  security:
+    user:
+      name: admin
+      password: '{noop}admin123'
   # 🗄️ 数据源配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -52,6 +58,34 @@ management:
   endpoint:
     metrics:
       enabled: true
+
+# 📚 Knife4j 文档配置 (Spring Boot 3.x 兼容)
+knife4j:
+  enable: true
+  production: false
+  basic:
+    enable: false
+  setting:
+    language: zh-cn
+    enable-version: true
+    enable-debug: true
+    enable-search: true
+    enable-home-custom: true
+    home-custom-path: classpath:markdown/auth-home.md
+
+# SpringDoc OpenAPI 配置 (Jakarta EE)
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    try-it-out-enabled: true
+    operations-sorter: alpha
+    tags-sorter: alpha
+    filter: true
+  packages-to-scan: com.xypai.security.oauth.controller
 
 # 📝 日志配置
 logging:

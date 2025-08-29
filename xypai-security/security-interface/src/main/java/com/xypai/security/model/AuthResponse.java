@@ -68,8 +68,6 @@ public record AuthResponse(
             String nickname,
             String email,
             String mobile,
-            @JsonProperty("client_type")
-            String clientType,
             Set<String> roles,
             Set<String> permissions,
             @JsonProperty("login_time")
@@ -82,7 +80,6 @@ public record AuthResponse(
         public UserInfo {
             Objects.requireNonNull(id, "用户ID不能为空");
             Objects.requireNonNull(username, "用户名不能为空");
-            Objects.requireNonNull(clientType, "客户端类型不能为空");
             
             // 默认值处理
             if (nickname == null || nickname.trim().isEmpty()) {
@@ -105,9 +102,9 @@ public record AuthResponse(
         /**
          * 创建用户信息
          */
-        public static UserInfo of(Long id, String username, String clientType) {
-            return new UserInfo(id, username, null, null, null, 
-                              clientType, null, null, null);
+        public static UserInfo of(Long id, String username) {
+            return new UserInfo(id, username, null, null, null,
+                    null, null, null);
         }
         
         /**

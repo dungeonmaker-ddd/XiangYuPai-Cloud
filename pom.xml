@@ -26,6 +26,7 @@
         <pagehelper.boot.version>2.1.0</pagehelper.boot.version>
         <druid.version>1.2.23</druid.version>
         <dynamic-ds.version>4.3.1</dynamic-ds.version>
+        <mybatis-plus.version>3.5.5</mybatis-plus.version>
         <commons.io.version>2.19.0</commons.io.version>
         <velocity.version>2.3</velocity.version>
         <fastjson.version>2.0.57</fastjson.version>
@@ -35,16 +36,18 @@
         <springdoc.version>2.3.0</springdoc.version>
         <knife4j.version>4.4.0</knife4j.version>
         <transmittable-thread-local.version>2.14.4</transmittable-thread-local.version>
+        <lombok.version>1.18.30</lombok.version>
     </properties>
 
     <!-- 依赖声明 -->
     <modules>
-        <module>xypai-auth</module>
+        <module>xypai-security</module>
         <module>xypai-gateway</module>
         <module>xypai-visual</module>
         <module>xypai-modules</module>
         <module>xypai-api</module>
         <module>xypai-common</module>
+        <module>xypai-users</module>
     </modules>
 
     <dependencyManagement>
@@ -159,6 +162,18 @@
                 <version>${transmittable-thread-local.version}</version>
             </dependency>
 
+            <!-- MyBatis Plus -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-boot-starter</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+
             <!-- 核心模块 -->
             <dependency>
                 <groupId>com.xypai</groupId>
@@ -229,6 +244,14 @@
                 <version>${xypai.version}</version>
             </dependency>
 
+            <!-- Lombok -->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
     <packaging>pom</packaging>
@@ -268,6 +291,20 @@
                             </goals>
                         </execution>
                     </executions>
+                </plugin>
+
+                <!-- Maven JAR Plugin -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.3.0</version>
+                </plugin>
+
+                <!-- Maven Surefire Plugin -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.1.2</version>
                 </plugin>
             </plugins>
         </pluginManagement>

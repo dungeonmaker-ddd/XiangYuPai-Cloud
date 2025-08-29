@@ -1,7 +1,13 @@
 # 🌐 XY相遇派安全Web管理端 - 开发环境配置
 # XV03:06 开发环境专用配置
 
+
 spring:
+  # 🔐 Spring Security 用户配置
+  security:
+    user:
+      name: admin
+      password: admin123
   # 🗄️ 数据源配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver

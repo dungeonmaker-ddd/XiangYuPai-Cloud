@@ -16,14 +16,19 @@
     </description>
 
     <!-- 配置为仅依赖管理模块 -->
+    <packaging>pom</packaging>
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <skipIfEmpty>true</skipIfEmpty>
-                </configuration>
+                <executions>
+                    <execution>
+                        <id>default-jar</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

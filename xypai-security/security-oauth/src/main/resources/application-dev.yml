@@ -38,16 +38,27 @@ auth:
     app-expire-time: 86400
     # 小程序token过期时间（秒）- 24小时
     mini-expire-time: 86400
-
-# 🔐 OAuth2配置
-oauth2:
-  # JWT密钥
+  # JWT配置
   jwt:
-    secret: xypai-security-jwt-secret-key-2025
+    secret: xypai-security-jwt-secret-key-2025-modern-implementation-64-characters
     # 访问令牌过期时间（秒）
     access-token-validity: ${auth.token.app-expire-time}
     # 刷新令牌过期时间（秒）- 7天
     refresh-token-validity: 604800
+    # JWT签发者
+    issuer: xypai-security-oauth
+    # JWT受众
+    audiences: xypai-client,xypai-web,xypai-app
+
+# 🔐 OAuth2配置（保持向后兼容）
+oauth2:
+  # JWT密钥
+  jwt:
+    secret: ${auth.jwt.secret}
+    # 访问令牌过期时间（秒）
+    access-token-validity: ${auth.jwt.access-token-validity}
+    # 刷新令牌过期时间（秒）- 7天
+    refresh-token-validity: ${auth.jwt.refresh-token-validity}
 
 # 📊 监控配置
 management:
@@ -59,33 +70,17 @@ management:
     metrics:
       enabled: true
 
-# 📚 Knife4j 文档配置 (Spring Boot 3.x 兼容)
+# 📚 Knife4j 简单配置
 knife4j:
   enable: true
   production: false
-  basic:
-    enable: false
-  setting:
-    language: zh-cn
-    enable-version: true
-    enable-debug: true
-    enable-search: true
-    enable-home-custom: true
-    home-custom-path: classpath:markdown/auth-home.md
 
-# SpringDoc OpenAPI 配置 (Jakarta EE)
+# SpringDoc 配置
 springdoc:
   api-docs:
     enabled: true
-    path: /v3/api-docs
   swagger-ui:
     enabled: true
-    path: /swagger-ui.html
-    try-it-out-enabled: true
-    operations-sorter: alpha
-    tags-sorter: alpha
-    filter: true
-  packages-to-scan: com.xypai.security.oauth.controller
 
 # 📝 日志配置
 logging:

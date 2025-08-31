@@ -59,6 +59,13 @@
             <artifactId>mybatis-spring</artifactId>
         </dependency>
 
+        <!-- MyBatis Plus -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <!-- Hibernate Validator -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

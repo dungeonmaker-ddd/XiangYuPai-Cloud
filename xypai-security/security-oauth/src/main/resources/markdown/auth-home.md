@@ -34,7 +34,7 @@ GET /auth/verify?access_token=YOUR_ACCESS_TOKEN
 ### 刷新令牌
 
 ```http
-POST /auth/refresh?refresh_token=YOUR_REFRESH_TOKEN&client_type=app
+POST /auth/refresh?refresh_token=YOUR_REFRESH_TOKEN
 ```
 
 ## 🔑 认证流程

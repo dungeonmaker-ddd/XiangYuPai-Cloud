@@ -17,6 +17,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @SpringBootApplication(scanBasePackages = "com.xypai")
 @EnableDiscoveryClient
 @EnableFeignClients(basePackages = "com.xypai")
+@org.springframework.boot.context.properties.EnableConfigurationProperties(com.xypai.security.oauth.common.properties.AuthProperties.class)
 public class SecurityOauthApplication {
     
     public static void main(String[] args) {

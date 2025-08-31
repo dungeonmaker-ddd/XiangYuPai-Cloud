@@ -1,0 +1,61 @@
+### OAuth2认证服务 - Redis Token存储测试
+### 测试Redis版本的Token管理功能
+
+### 1. 健康检查
+GET http://localhost:9401/auth/health
+Accept: application/json
+
+### 2. 用户登录 - 获取Token（存储到Redis）
+POST http://localhost:9401/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "123456",
+  "auth_type": "password"
+}
+
+### 3. 验证Token（从Redis读取）
+GET http://localhost:9401/auth/verify?access_token={{accessToken}}
+Accept: application/json
+
+### 4. 获取用户信息（从Redis读取）
+GET http://localhost:9401/auth/user-info?access_token={{accessToken}}
+Accept: application/json
+
+### 5. 刷新Token（Redis中的原子操作）
+POST http://localhost:9401/auth/refresh?refresh_token={{refreshToken}}
+Accept: application/json
+
+### 6. 获取Token详细信息（管理接口）
+GET http://localhost:9401/auth/admin/token/details?accessToken={{accessToken}}
+Accept: application/json
+
+### 7. 延长Token过期时间（管理接口）
+POST http://localhost:9401/auth/admin/token/extend?accessToken={{accessToken}}&extendSeconds=3600
+Accept: application/json
+
+### 8. 强制用户登出（管理接口）
+POST http://localhost:9401/auth/admin/user/1/force-logout
+Accept: application/json
+
+### 9. 用户登出（从Redis删除）
+POST http://localhost:9401/auth/logout?access_token={{accessToken}}
+Accept: application/json
+
+### 10. 验证登出后Token无效
+GET http://localhost:9401/auth/verify?access_token={{accessToken}}
+Accept: application/json
+
+### 变量说明：
+### {{accessToken}} - 从登录接口返回的access_token
+### {{refreshToken}} - 从登录接口返回的refresh_token
+### 
+### 使用说明：
+### 1. 确保Redis服务运行在localhost:6379
+### 2. 启动认证服务（端口9401）
+### 3. 按顺序执行测试请求
+### 4. 观察Redis中的数据变化：
+###    - auth:access_token:* 存储访问令牌
+###    - auth:refresh_token:* 存储刷新令牌
+###    - auth:user_tokens:* 存储用户Token索引

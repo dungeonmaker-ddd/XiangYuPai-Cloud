@@ -1,0 +1,142 @@
+# =======================================================
+# 🔪 XyPai Knife4j 使用示例配置
+# =======================================================
+# 在具体的微服务中，可以参考以下配置进行自定义
+
+swagger:
+  # 基础配置
+  enabled: true
+  title: "用户微服务 API 文档"
+  description: "用户管理、认证、权限等相关接口"
+  version: "3.6.6"
+  
+  # 联系人信息（可选）
+  contact:
+    name: "用户模块开发团队"
+    email: "user-team@xypai.com"
+    url: "https://wiki.xypai.com/user-service"
+  
+  # 扫描配置
+  base-packages:
+    - "com.xypai.user.controller"
+  
+  # 排除敏感路径
+  exclude-paths:
+    - "/actuator/**"
+    - "/error"
+    - "/api/v1/user/internal/**"
+    - "/api/v1/user/admin/sensitive/**"
+  
+  # 多模块分组
+  groups:
+    - name: "01-用户基础接口"
+      base-package: "com.xypai.user.controller.app"
+      paths-to-match: "/api/v1/user/**"
+      exclude-paths:
+        - "/api/v1/user/admin/**"
+
+    - name: "02-用户管理接口"
+      base-package: "com.xypai.user.controller.admin"
+      paths-to-match: "/api/v1/user/admin/**"
+
+    - name: "03-认证授权接口"
+      base-package: "com.xypai.user.controller.auth"
+      paths-to-match: "/api/v1/auth/**"
+
+    - name: "04-Feign内部接口"
+      base-package: "com.xypai.user.controller.feign"
+      paths-to-match: "/api/feign/user/**"
+  
+  # JWT 认证配置
+  authorization:
+    type: "Bearer"
+    name: "Authorization"
+    description: "JWT 认证令牌，格式：Bearer {token}"
+    key-location: "header"
+  
+  # Knife4j 增强配置
+  knife4j:
+    enable: true
+    production: false
+    
+    # 开发环境可以启用 Basic 认证保护
+    basic:
+      enable: true
+      username: "xypai"
+      password: "dev2025"
+    
+    # 界面自定义
+    setting:
+      enable-dynamic-parameter: true
+      enable-debug: true
+      enable-search: true
+      enable-footer-custom: true
+      footer-custom-content: "© 2025 XyPai 用户微服务 - 内部开发版本"
+      enable-home-custom: true
+      home-custom-path: "/doc.html"
+
+# =======================================================
+# 🌍 不同环境配置示例
+# =======================================================
+
+---
+# 开发环境
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+swagger:
+  enabled: true
+  knife4j:
+    production: false
+    basic:
+      enable: false  # 开发环境可以不启用认证
+
+logging:
+  level:
+    com.xypai.common.swagger: DEBUG
+
+---
+# 测试环境
+spring:
+  config:
+    activate:
+      on-profile: test
+
+swagger:
+  enabled: true
+  knife4j:
+    production: false
+    basic:
+      enable: true
+      username: "test"
+      password: "test123"
+
+---
+# 预生产环境
+spring:
+  config:
+    activate:
+      on-profile: pre
+
+swagger:
+  enabled: true
+  knife4j:
+    production: true
+    basic:
+      enable: true
+      username: "admin"
+      password: "${SWAGGER_PASSWORD:admin123}"
+
+---
+# 生产环境
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+swagger:
+  enabled: false  # 生产环境完全禁用
+  knife4j:
+    production: true

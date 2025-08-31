@@ -1,0 +1,281 @@
+# 🏗️ XY相遇派用户微服务配置 - 企业架构实现
+# 遵循企业微服务架构规范的完整配置
+
+server:
+  port: 9201
+  servlet:
+    context-path: /xypai-user
+
+spring:
+  application:
+    name: users
+  
+  profiles:
+    active: dev
+  
+  # ================================
+  # 🗄️ 动态数据源配置
+  # ================================
+  datasource:
+    dynamic:
+      primary: master # 设置默认的数据源或者数据源组
+      strict: false   # 严格匹配数据源，默认false，true未匹配到指定数据源时抛异常，false使用默认数据源
+      datasource:
+        master:
+          type: com.zaxxer.hikari.HikariDataSource
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          url: jdbc:mysql://localhost:3306/users?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+          username: ${DB_USERNAME:root}
+          password: ${DB_PASSWORD:password}
+          hikari:
+            minimum-idle: 5
+            maximum-pool-size: 20
+            auto-commit: true
+            idle-timeout: 30000
+            pool-name: XyPaiUserHikariCP
+            max-lifetime: 1800000
+            connection-timeout: 30000
+            connection-test-query: SELECT 1
+  
+  # ================================
+  # 💾 Redis缓存配置
+  # ================================
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    database: ${REDIS_DB:0}
+    timeout: 10s
+    lettuce:
+      pool:
+        min-idle: 0
+        max-idle: 8
+        max-active: 8
+        max-wait: -1ms
+  
+  # ================================
+  # ☁️ Nacos配置
+  # ================================
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:public}
+        group: ${NACOS_GROUP:DEFAULT_GROUP}
+        cluster-name: ${NACOS_CLUSTER:DEFAULT}
+        metadata:
+          version: 3.6.6
+          zone: xypai-zone
+      config:
+        server-addr: ${NACOS_SERVER:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:public}
+        group: ${NACOS_GROUP:DEFAULT_GROUP}
+        file-extension: yml
+        shared-configs:
+          - data-id: application-common.yml
+            group: DEFAULT_GROUP
+            refresh: true
+          - data-id: xypai-common-redis.yml
+            group: DEFAULT_GROUP
+            refresh: true
+          - data-id: xypai-common-security.yml
+            group: DEFAULT_GROUP
+            refresh: true
+
+# ================================
+# 🧩 MyBatis Plus配置
+# ================================
+mybatis-plus:
+  # Mapper XML文件路径
+  mapper-locations: classpath*:mapper/**/*Mapper.xml
+  # 实体类包路径
+  type-aliases-package: com.xypai.user.domain.entity
+  # 全局配置
+  global-config:
+    # 数据库字段驼峰下划线转换
+    db-config:
+      # 主键策略
+      id-type: ASSIGN_ID
+      # 逻辑删除字段
+      logic-delete-field: delFlag
+      # 逻辑删除值
+      logic-delete-value: 1
+      # 逻辑未删除值
+      logic-not-delete-value: 0
+      # 字段策略
+      insert-strategy: NOT_NULL
+      update-strategy: NOT_NULL
+      select-strategy: NOT_EMPTY
+  # MyBatis配置
+  configuration:
+    # 驼峰下划线转换
+    map-underscore-to-camel-case: true
+    # 缓存配置
+    cache-enabled: false
+    # SQL日志
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    # 懒加载配置
+    lazy-loading-enabled: true
+    multiple-result-sets-enabled: true
+    use-column-label: true
+    use-generated-keys: false
+    auto-mapping-behavior: partial
+    default-executor-type: simple
+    default-statement-timeout: 25000
+
+# ================================
+# 🔐 安全配置
+# ================================
+security:
+  # Token配置
+  token:
+    header: Authorization
+    prefix: "Bearer "
+    secret: ${JWT_SECRET:xypai-user-microservice-secret-key-2025}
+    expireTime: 30
+
+# ================================
+# 📝 日志配置
+# ================================
+logging:
+  level:
+    com.xypai: debug
+    org.springframework.cloud: info
+    org.mybatis: debug
+  file:
+    name: logs/users.log
+
+# ================================
+# 📊 监控配置 - Actuator
+# ================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# SpringDoc 被 Knife4j 替代，无需配置
+
+# ================================
+# 🎯 Feign配置
+# ================================
+feign:
+  compression:
+    request:
+      enabled: true
+    response:
+      enabled: true
+  client:
+    config:
+      default:
+        connect-timeout: 10000
+        read-timeout: 10000
+        logger-level: basic
+
+# ================================
+# 📚 Knife4j API文档配置
+# ================================
+swagger:
+  enabled: true
+  title: "XY相遇派用户微服务 API"
+  description: "基于企业架构的用户管理微服务 - 提供用户注册、认证、信息管理等核心功能"
+  version: "3.6.6"
+  
+  # 联系人信息
+  contact:
+    name: "XyPai 用户服务团队"
+    email: "user-team@xypai.com"
+    url: "https://wiki.xypai.com/user-service"
+  
+  # 扫描配置
+  base-packages:
+    - "com.xypai.user.controller"
+  
+  # 排除敏感路径
+  exclude-paths:
+    - "/actuator/**"
+    - "/error"
+    - "/api/feign/user/internal/**"
+    - "/api/v1/user/admin/sensitive/**"
+  
+  # 模块分组配置
+  groups:
+    - name: "01-用户基础接口"
+      base-package: "com.xypai.user.controller"
+      paths-to-match: "/api/v1/user/**"
+      exclude-paths:
+        - "/api/v1/user/admin/**"
+        - "/api/feign/**"
+
+    - name: "02-用户管理接口"
+      base-package: "com.xypai.user.controller"
+      paths-to-match: "/api/v1/user/admin/**"
+
+    - name: "03-Feign内部接口"
+      base-package: "com.xypai.user.controller"
+      paths-to-match: "/api/feign/user/**"
+  
+  # JWT 认证配置
+  authorization:
+    type: "Bearer"
+    name: "Authorization"
+    description: "JWT 认证令牌，格式：Bearer {token}"
+    key-location: "header"
+  
+  # Knife4j 增强配置
+  knife4j:
+    enable: true
+    production: false
+    
+    # 开发环境Basic认证（可选）
+    basic:
+      enable: false
+      username: "xypai"
+      password: "dev2025"
+    
+    # 界面自定义
+    setting:
+      enable-dynamic-parameter: true
+      enable-debug: true
+      enable-search: true
+      enable-footer-custom: true
+      footer-custom-content: "© 2025 XyPai 用户微服务 - 企业级架构实现"
+      enable-home-custom: true
+      home-custom-path: "/doc.html"
+
+# ================================
+# 🔧 自定义配置
+# ================================
+xypai:
+  
+  user:
+    # 用户配置
+    config:
+      # 默认头像
+      default-avatar: "https://cdn.xypai.com/avatar/default.jpg"
+      # 用户编码前缀
+      user-code-prefix: "XY"
+      # 初始积分
+      initial-points: 100
+      # 缓存过期时间(分钟)
+      cache-expire-minutes: 30
+    # 业务规则配置
+    rules:
+      # 批量操作最大数量
+      batch-max-size: 1000
+      # 分页最大页大小
+      page-max-size: 100
+      # 活跃用户定义天数
+      active-user-days: 30
+      # 新用户定义天数
+      new-user-days: 7

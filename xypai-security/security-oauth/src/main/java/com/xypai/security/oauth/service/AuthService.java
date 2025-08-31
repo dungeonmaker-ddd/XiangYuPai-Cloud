@@ -1,7 +1,7 @@
 package com.xypai.security.oauth.service;
 
-import com.xypai.security.model.AuthRequest;
-import com.xypai.security.model.AuthResponse;
+import com.xypai.security.oauth.auth.dto.request.AuthRequest;
+import com.xypai.security.oauth.auth.dto.response.AuthResponse;
 
 import java.util.Map;
 import java.util.Optional;

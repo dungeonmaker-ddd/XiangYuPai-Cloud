@@ -1,0 +1,4 @@
+# 🏗️ XY相遇派 Swagger 自动配置
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.xypai.common.swagger.config.SwaggerConfig,\
+  com.xypai.common.swagger.config.SwaggerWebMvcConfig

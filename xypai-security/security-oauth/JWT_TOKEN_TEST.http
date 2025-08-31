@@ -1,0 +1,32 @@
+# 🔐 JWT令牌测试接口
+
+### 1. 用户登录 - 获取JWT令牌
+POST http://localhost:9401/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "123456",
+  "auth_type": "password"
+}
+
+### 2. 验证访问令牌
+GET http://localhost:9401/auth/verify?access_token={{access_token_from_login}}
+
+### 3. 获取用户信息
+GET http://localhost:9401/auth/user-info?access_token={{access_token_from_login}}
+
+### 4. 刷新令牌
+POST http://localhost:9401/auth/refresh?refresh_token={{refresh_token_from_login}}
+
+### 5. 用户登出
+POST http://localhost:9401/auth/logout?access_token={{access_token_from_login}}
+
+### 6. 健康检查
+GET http://localhost:9401/auth/health
+
+# 📋 测试说明：
+# 1. 先执行登录接口，获取 access_token 和 refresh_token
+# 2. 将获取的令牌替换到后续请求中的 {{access_token_from_login}} 和 {{refresh_token_from_login}}
+# 3. 新生成的JWT令牌符合标准格式：header.payload.signature
+# 4. 令牌包含完整的用户信息，支持无状态验证

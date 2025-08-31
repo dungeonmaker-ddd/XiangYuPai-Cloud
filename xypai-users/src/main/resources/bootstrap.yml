@@ -1,0 +1,63 @@
+# 🏗️ XY相遇派用户微服务引导配置
+# Bootstrap配置在application.yml之前加载，用于配置中心等基础设施
+
+spring:
+  application:
+    name: users
+  
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  
+  cloud:
+    nacos:
+      # 配置中心连接配置
+      config:
+        server-addr: ${NACOS_CONFIG_SERVER:127.0.0.1:8848}
+        username: nacos
+        password: nacos
+        namespace: ${NACOS_CONFIG_NAMESPACE:public}
+        group: ${NACOS_CONFIG_GROUP:DEFAULT_GROUP}
+        file-extension: yml
+        # 启用配置刷新
+        refresh-enabled: true
+        # 共享配置
+        shared-configs:
+          # 通用配置
+          - data-id: application-common.yml
+            group: DEFAULT_GROUP
+            refresh: true
+          # Redis通用配置
+          - data-id: xypai-common-redis.yml
+            group: DEFAULT_GROUP
+            refresh: true
+          # 安全通用配置
+          - data-id: xypai-common-security.yml
+            group: DEFAULT_GROUP
+            refresh: true
+          # 数据库通用配置
+          - data-id: xypai-common-datasource.yml
+            group: DEFAULT_GROUP
+            refresh: true
+        # 扩展配置
+        extension-configs:
+          # 用户微服务专用配置
+          - data-id: users-${spring.profiles.active}.yml
+            group: ${NACOS_CONFIG_GROUP:DEFAULT_GROUP}
+            refresh: true
+      
+      # 服务发现连接配置
+      discovery:
+        server-addr: ${NACOS_DISCOVERY_SERVER:127.0.0.1:8848}
+        username: nacos
+        password: nacos
+        namespace: ${NACOS_DISCOVERY_NAMESPACE:public}
+        group: ${NACOS_DISCOVERY_GROUP:DEFAULT_GROUP}
+        # 服务注册配置
+        register-enabled: true
+        # 实例配置
+        instance-enabled: true
+        # 心跳配置
+        heart-beat-interval: 5000
+        heart-beat-timeout: 15000
+        # IP配置
+        ip-delete-timeout: 30000

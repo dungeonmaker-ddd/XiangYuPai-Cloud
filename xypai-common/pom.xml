@@ -18,6 +18,7 @@
         <module>xypai-common-sensitive</module>
         <module>xypai-common-datascope</module>
         <module>xypai-common-datasource</module>
+        <module>xypai-common-knif4j</module>
     </modules>
 
     <artifactId>xypai-common</artifactId>

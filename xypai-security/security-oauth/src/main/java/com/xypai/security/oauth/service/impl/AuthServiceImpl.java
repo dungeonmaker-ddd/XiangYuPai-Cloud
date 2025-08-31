@@ -1,8 +1,8 @@
 package com.xypai.security.oauth.service.impl;
 
-import com.xypai.security.model.AuthRequest;
-import com.xypai.security.model.AuthResponse;
-import com.xypai.security.oauth.config.TokenProperties;
+import com.xypai.security.oauth.auth.dto.request.AuthRequest;
+import com.xypai.security.oauth.auth.dto.response.AuthResponse;
+import com.xypai.security.oauth.common.properties.AuthProperties;
 import com.xypai.security.oauth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,8 +27,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-    
-    private final TokenProperties tokenProperties;
+
+    private final AuthProperties authProperties;
     
     // MVP版本：使用内存存储（生产环境应使用Redis + 数据库）
     private final Map<String, AuthResponse.UserInfo> tokenStore = new ConcurrentHashMap<>();
@@ -50,13 +50,13 @@ public class AuthServiceImpl implements AuthService {
             // 生成令牌 - 使用默认过期时间
             String accessToken = generateAccessToken(userInfo);
             String refreshToken = generateRefreshToken(userInfo);
-            Long expiresIn = tokenProperties.getAppExpireTime(); // 使用App端默认时间
+            Long expiresIn = authProperties.token().appExpireTime().toSeconds(); // 使用App端默认时间
             
             // 存储令牌
             tokenStore.put(accessToken, userInfo);
             refreshTokenStore.put(refreshToken, accessToken);
-            
-            AuthResponse response = AuthResponse.of(accessToken, refreshToken, expiresIn, userInfo);
+
+            AuthResponse response = AuthResponse.create(accessToken, refreshToken, expiresIn, userInfo);
             log.info("用户认证成功: username={}", authRequest.username());
             
             return Optional.of(response);
@@ -87,15 +87,15 @@ public class AuthServiceImpl implements AuthService {
         // 生成新令牌 - 使用默认过期时间
         String newAccessToken = generateAccessToken(userInfo);
         String newRefreshToken = generateRefreshToken(userInfo);
-        Long expiresIn = tokenProperties.getAppExpireTime();
+        Long expiresIn = authProperties.token().appExpireTime().toSeconds();
         
         // 更新存储
         tokenStore.remove(oldAccessToken);
         refreshTokenStore.remove(refreshToken);
         tokenStore.put(newAccessToken, userInfo);
         refreshTokenStore.put(newRefreshToken, newAccessToken);
-        
-        AuthResponse response = AuthResponse.of(newAccessToken, newRefreshToken, expiresIn, userInfo);
+
+        AuthResponse response = AuthResponse.create(newAccessToken, newRefreshToken, expiresIn, userInfo);
         log.info("令牌刷新成功: username={}", userInfo.username());
         
         return Optional.of(response);
@@ -147,15 +147,10 @@ public class AuthServiceImpl implements AuthService {
         if ("admin".equals(authRequest.username()) && 
             authRequest.isPasswordAuth() && 
             "123456".equals(authRequest.password())) {
-            
-            return new AuthResponse.UserInfo(
-                1L,
-                "admin",
-                "管理员",
-                "admin@xypai.com",
-                "13800138000",
-                Set.of("ADMIN", "USER"),
-                Set.of("user:read", "user:write", "system:config"),
+
+            return new AuthResponse.AdminUser(
+                    1L, "admin", "管理员", "admin@xypai.com", "13800138000",
+                    Set.of("ADMIN", "USER"), Set.of("user:read", "user:write", "system:config"),
                 Instant.now()
             );
         }
@@ -163,15 +158,10 @@ public class AuthServiceImpl implements AuthService {
         if ("user".equals(authRequest.username()) && 
             authRequest.isPasswordAuth() && 
             "123456".equals(authRequest.password())) {
-            
-            return new AuthResponse.UserInfo(
-                2L,
-                "user",
-                "普通用户",
-                "user@xypai.com",
-                "13800138001",
-                Set.of("USER"),
-                Set.of("user:read"),
+
+            return new AuthResponse.StandardUser(
+                    2L, "user", "普通用户", "user@xypai.com", "13800138001",
+                    Set.of("USER"), Set.of("user:read"),
                 Instant.now()
             );
         }

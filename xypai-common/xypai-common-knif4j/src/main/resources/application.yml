@@ -1,0 +1,167 @@
+# =======================================================
+# 🔪 XyPai Knife4j 全局配置模板
+# =======================================================
+
+swagger:
+  # 是否启用 Swagger 文档
+  enabled: true
+  
+  # API 基本信息
+  title: "XyPai 微服务接口文档"
+  description: "基于 Spring Boot 3.x + Knife4j 的企业级微服务架构 API 文档"
+  version: "3.6.6"
+  terms-of-service-url: "https://www.xypai.com/terms"
+  license: "Apache License 2.0"
+  license-url: "https://www.apache.org/licenses/LICENSE-2.0"
+  
+  # 联系人信息
+  contact:
+    name: "XyPai Team"
+    email: "support@xypai.com"
+    url: "https://www.xypai.com"
+  
+  # 扫描配置
+  base-packages:
+    - "com.xypai"
+  
+  # 排除路径
+  exclude-paths:
+    - "/actuator/**"
+    - "/error"
+    - "/favicon.ico"
+  
+  # 分组配置示例
+  groups:
+    - name: "02-用户模块"
+      base-package: "com.xypai.user"
+      paths-to-match: "/api/v1/user/**"
+      exclude-paths:
+        - "/api/v1/user/internal/**"
+
+    - name: "03-系统模块"
+      base-package: "com.xypai.system"
+      paths-to-match: "/api/v1/system/**"
+
+    - name: "04-文件模块"
+      base-package: "com.xypai.file"
+      paths-to-match: "/api/v1/file/**"
+  
+  # JWT 认证配置
+  authorization:
+    type: "Bearer"
+    name: "Authorization"
+    description: "JWT 认证令牌，格式：Bearer {token}"
+    key-location: "header"
+  
+  # Knife4j 增强配置
+  knife4j:
+    # 是否启用 Knife4j 增强
+    enable: true
+    
+    # 生产环境屏蔽（生产环境建议设置为 true）
+    production: false
+    
+    # Basic 认证（可选）
+    basic:
+      enable: false
+      username: "admin"
+      password: "123456"
+    
+    # 自定义设置
+    setting:
+      # 启用动态参数
+      enable-dynamic-parameter: true
+      # 启用调试
+      enable-debug: true
+      # 启用搜索
+      enable-search: true
+      # 启用 Footer
+      enable-footer: false
+      # 自定义 Footer
+      enable-footer-custom: true
+      footer-custom-content: "Copyright © 2025 XyPai. All rights reserved."
+      # 自定义主页
+      enable-home-custom: true
+      home-custom-path: "/doc.html"
+
+# =======================================================
+# 🚀 SpringDoc OpenAPI 3 配置
+# =======================================================
+
+springdoc:
+  # API 文档路径
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  
+  # Swagger UI 配置
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    # 持久化认证
+    persist-authorization: true
+    # 显示请求时长
+    display-request-duration: true
+    # 显示操作 ID
+    display-operation-id: true
+    # 默认展开深度
+    default-models-expand-depth: 1
+    default-model-expand-depth: 1
+  
+  # 显示 Spring Boot Actuator 端点
+  show-actuator: false
+  
+  # 路径匹配
+  paths-to-match:
+    - /api/**
+  
+  # 包扫描
+  packages-to-scan:
+    - com.xypai
+
+# =======================================================
+# 🔧 Knife4j 特定配置
+# =======================================================
+
+knife4j:
+  # 启用增强功能
+  enable: true
+  
+  # OpenAPI 配置
+  openapi:
+    title: ${swagger.title}
+    description: ${swagger.description}
+    version: ${swagger.version}
+    
+    # 联系人信息
+    contact:
+      name: ${swagger.contact.name}
+      email: ${swagger.contact.email}
+      url: ${swagger.contact.url}
+    
+    # 许可证
+    license:
+      name: ${swagger.license}
+      url: ${swagger.license-url}
+  
+  # 生产环境保护
+  production: ${swagger.knife4j.production}
+  
+  # Basic 认证
+  basic:
+    enable: ${swagger.knife4j.basic.enable}
+    username: ${swagger.knife4j.basic.username}
+    password: ${swagger.knife4j.basic.password}
+  
+  # 自定义设置
+  setting:
+    language: zh-CN
+    enable-version: false
+    enable-reload-cache-parameter: false
+    enable-after-script: true
+    enable-filter-multipart-api-method-type: POST
+    enable-filter-multipart-apis: false
+    enable-request-cache: true
+    enable-host: false
+    enable-home-custom: ${swagger.knife4j.setting.enable-home-custom}
+    home-custom-location: ${swagger.knife4j.setting.home-custom-path}

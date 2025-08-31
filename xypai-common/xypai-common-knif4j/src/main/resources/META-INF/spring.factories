@@ -1,0 +1,5 @@
+# Auto Configuration
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.xypai.common.swagger.config.SwaggerAutoConfiguration,\
+com.xypai.common.swagger.config.SwaggerWebMvcConfig,\
+com.xypai.common.swagger.config.Knife4jConfig

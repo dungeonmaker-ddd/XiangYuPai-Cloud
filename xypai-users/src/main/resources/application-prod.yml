@@ -1,0 +1,119 @@
+# 🏗️ XY相遇派用户微服务生产环境配置
+
+spring:
+  # 动态数据源配置 - 生产环境
+  datasource:
+    dynamic:
+      datasource:
+        master:
+          url: jdbc:mysql://${DB_HOST:xypai-mysql.prod.com}:${DB_PORT:3306}/users?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+          username: ${DB_USERNAME:xypai_user}
+          password: ${DB_PASSWORD}
+          hikari:
+            maximum-pool-size: 50
+            minimum-idle: 10
+            connection-timeout: 20000
+            validation-timeout: 3000
+            idle-timeout: 600000
+            max-lifetime: 1800000
+            leak-detection-threshold: 60000
+  
+  # Redis配置 - 生产环境
+  redis:
+    host: ${REDIS_HOST:xypai-redis.prod.com}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD}
+    database: 0
+    timeout: 10s
+    lettuce:
+      pool:
+        max-active: 20
+        max-idle: 10
+        min-idle: 5
+        max-wait: 10s
+  
+  # Nacos配置 - 生产环境
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER:xypai-nacos.prod.com:8848}
+        namespace: prod
+        group: XYPAI_PROD_GROUP
+        cluster-name: xypai-prod-cluster
+        metadata:
+          zone: prod-zone-1
+          version: 3.6.6
+      config:
+        server-addr: ${NACOS_SERVER:xypai-nacos.prod.com:8848}
+        namespace: prod
+        group: XYPAI_PROD_GROUP
+
+# MyBatis Plus - 生产环境
+mybatis-plus:
+  configuration:
+    # 生产环境关闭SQL日志
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+    # 生产环境启用缓存
+    cache-enabled: true
+  global-config:
+    # 生产环境启用性能优化
+    db-config:
+      logic-delete-field: delFlag
+
+# 安全配置 - 生产环境
+security:
+  token:
+    # 生产环境使用更强的密钥
+    secret: ${JWT_SECRET}
+    # 生产环境Token过期时间
+    expireTime: 60
+
+# 日志配置 - 生产环境
+logging:
+  level:
+    root: warn
+    com.xypai: info
+    org.springframework.cloud: warn
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{50} - %msg%n"
+  file:
+    name: /app/logs/users.log
+    max-size: 100MB
+    max-history: 30
+
+# SpringDoc - 生产环境
+springdoc:
+  api-docs:
+    # 生产环境关闭API文档
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+# 监控 - 生产环境
+management:
+  endpoints:
+    web:
+      exposure:
+        # 生产环境只暴露必要的端点
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+        step: 60s
+
+# 自定义配置 - 生产环境
+xypai:
+  user:
+    config:
+      # 生产环境缓存时间
+      cache-expire-minutes: 60
+      # 生产环境关闭详细日志
+      enable-detail-log: false
+    rules:
+      # 生产环境严格限制批量操作
+      batch-max-size: 500
+      page-max-size: 50

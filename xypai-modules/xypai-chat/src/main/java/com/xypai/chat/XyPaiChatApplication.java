@@ -2,6 +2,7 @@ package com.xypai.chat;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import com.xypai.common.security.annotation.EnableCustomConfig;
 import com.xypai.common.security.annotation.EnableRyFeignClients;
 
@@ -12,6 +13,7 @@ import com.xypai.common.security.annotation.EnableRyFeignClients;
  */
 @EnableCustomConfig
 @EnableRyFeignClients
+@EnableDiscoveryClient
 @SpringBootApplication
 public class XyPaiChatApplication {
     public static void main(String[] args) {

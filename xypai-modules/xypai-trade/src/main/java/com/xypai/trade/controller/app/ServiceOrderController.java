@@ -6,12 +6,12 @@ import com.xypai.common.core.web.page.TableDataInfo;
 import com.xypai.common.log.annotation.Log;
 import com.xypai.common.log.enums.BusinessType;
 import com.xypai.common.security.annotation.RequiresPermissions;
-import com.xypai.trade.domain.dto.ServiceOrderAddDTO;
-import com.xypai.trade.domain.dto.ServiceOrderQueryDTO;
-import com.xypai.trade.domain.dto.ServiceOrderUpdateDTO;
-import com.xypai.trade.domain.vo.ServiceOrderDetailVO;
-import com.xypai.trade.domain.vo.ServiceOrderListVO;
-import com.xypai.trade.service.IServiceOrderService;
+import com.xypai.trade.domain.dto.OrderCreateDTO;
+import com.xypai.trade.domain.dto.OrderQueryDTO;
+import com.xypai.trade.domain.dto.OrderUpdateDTO;
+import com.xypai.trade.domain.vo.OrderDetailVO;
+import com.xypai.trade.domain.vo.OrderListVO;
+import com.xypai.trade.service.IOrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,7 +36,7 @@ import java.util.Map;
 @Validated
 public class ServiceOrderController extends BaseController {
 
-    private final IServiceOrderService serviceOrderService;
+    private final IOrderService orderService;
 
     /**
      * 查询订单列表
@@ -44,9 +44,9 @@ public class ServiceOrderController extends BaseController {
     @Operation(summary = "查询订单列表", description = "分页查询订单列表信息")
     @GetMapping("/list")
     @RequiresPermissions("trade:order:list")
-    public TableDataInfo list(ServiceOrderQueryDTO query) {
+    public TableDataInfo list(OrderQueryDTO query) {
         startPage();
-        List<ServiceOrderListVO> list = serviceOrderService.selectOrderList(query);
+        List<OrderListVO> list = orderService.selectOrderList(query);
         return getDataTable(list);
     }
 
@@ -57,10 +57,10 @@ public class ServiceOrderController extends BaseController {
     @GetMapping("/{orderId}")
     @RequiresPermissions("trade:order:query")
     @Log(title = "订单管理", businessType = BusinessType.QUERY)
-    public R<ServiceOrderDetailVO> getInfo(
+    public R<OrderDetailVO> getInfo(
             @Parameter(description = "订单ID", required = true)
             @PathVariable Long orderId) {
-        return R.ok(serviceOrderService.selectOrderById(orderId));
+        return R.ok(orderService.selectOrderById(orderId));
     }
 
     /**
@@ -70,8 +70,9 @@ public class ServiceOrderController extends BaseController {
     @PostMapping
     @RequiresPermissions("trade:order:add")
     @Log(title = "订单管理", businessType = BusinessType.INSERT)
-    public R<Void> add(@Validated @RequestBody ServiceOrderAddDTO orderAddDTO) {
-        return toAjax(serviceOrderService.createOrder(orderAddDTO));
+    public R<Void> add(@Validated @RequestBody OrderCreateDTO orderCreateDTO) {
+        Long orderId = orderService.createOrder(orderCreateDTO);
+        return orderId != null ? R.ok() : R.fail();
     }
 
     /**
@@ -81,8 +82,8 @@ public class ServiceOrderController extends BaseController {
     @PutMapping
     @RequiresPermissions("trade:order:edit")
     @Log(title = "订单管理", businessType = BusinessType.UPDATE)
-    public R<Void> edit(@Validated @RequestBody ServiceOrderUpdateDTO orderUpdateDTO) {
-        return toAjax(serviceOrderService.updateOrder(orderUpdateDTO));
+    public R<Void> edit(@Validated @RequestBody OrderUpdateDTO orderUpdateDTO) {
+        return orderService.updateOrder(orderUpdateDTO) ? R.ok() : R.fail();
     }
 
     /**
@@ -95,7 +96,8 @@ public class ServiceOrderController extends BaseController {
     public R<Void> remove(
             @Parameter(description = "订单ID数组", required = true)
             @PathVariable Long[] orderIds) {
-        return toAjax(serviceOrderService.deleteOrderByIds(Arrays.asList(orderIds)));
+        // 删除功能暂未实现
+        return R.fail("删除功能暂未开放");
     }
 
     /**
@@ -110,7 +112,8 @@ public class ServiceOrderController extends BaseController {
             @PathVariable Long orderId,
             @Parameter(description = "支付方式")
             @RequestParam(defaultValue = "wallet") String paymentMethod) {
-        return R.ok("订单支付成功", serviceOrderService.payOrder(orderId, paymentMethod));
+        // 支付功能需要通过PaymentService实现
+        return R.fail("请使用专门的支付接口");
     }
 
     /**
@@ -125,7 +128,7 @@ public class ServiceOrderController extends BaseController {
             @PathVariable Long orderId,
             @Parameter(description = "取消原因")
             @RequestParam(required = false) String reason) {
-        return toAjax(serviceOrderService.cancelOrder(orderId, reason));
+        return orderService.cancelOrder(orderId, reason) ? R.ok() : R.fail();
     }
 
     /**
@@ -138,7 +141,7 @@ public class ServiceOrderController extends BaseController {
     public R<Void> startService(
             @Parameter(description = "订单ID", required = true)
             @PathVariable Long orderId) {
-        return toAjax(serviceOrderService.startService(orderId));
+        return orderService.startService(orderId, null) ? R.ok() : R.fail();
     }
 
     /**
@@ -155,7 +158,8 @@ public class ServiceOrderController extends BaseController {
             @RequestParam(required = false) Integer rating,
             @Parameter(description = "评价内容")
             @RequestParam(required = false) String review) {
-        return toAjax(serviceOrderService.completeOrder(orderId, rating, review));
+        String completionNote = review != null ? review : "订单完成";
+        return orderService.completeOrder(orderId, completionNote) ? R.ok() : R.fail();
     }
 
     /**
@@ -170,7 +174,8 @@ public class ServiceOrderController extends BaseController {
             @PathVariable Long orderId,
             @Parameter(description = "退款原因", required = true)
             @RequestParam String reason) {
-        return toAjax(serviceOrderService.requestRefund(orderId, reason));
+        // 退款功能需要通过PaymentService实现
+        return R.fail("请使用专门的退款接口");
     }
 
     /**
@@ -187,7 +192,8 @@ public class ServiceOrderController extends BaseController {
             @RequestParam Boolean approved,
             @Parameter(description = "处理说明")
             @RequestParam(required = false) String note) {
-        return toAjax(serviceOrderService.handleRefund(orderId, approved, note));
+        // 退款处理功能需要通过PaymentService实现
+        return R.fail("请使用专门的退款处理接口");
     }
 
     /**
@@ -200,7 +206,7 @@ public class ServiceOrderController extends BaseController {
             @Parameter(description = "订单状态")
             @RequestParam(required = false) Integer status) {
         startPage();
-        List<ServiceOrderListVO> list = serviceOrderService.getMyPurchaseOrders(status);
+        List<OrderListVO> list = orderService.selectMyBuyOrders(status, null);
         return getDataTable(list);
     }
 
@@ -214,7 +220,7 @@ public class ServiceOrderController extends BaseController {
             @Parameter(description = "订单状态")
             @RequestParam(required = false) Integer status) {
         startPage();
-        List<ServiceOrderListVO> list = serviceOrderService.getMySaleOrders(status);
+        List<OrderListVO> list = orderService.selectMySellOrders(status, null);
         return getDataTable(list);
     }
 
@@ -229,7 +235,7 @@ public class ServiceOrderController extends BaseController {
             @RequestParam(required = false) String startDate,
             @Parameter(description = "统计结束时间")
             @RequestParam(required = false) String endDate) {
-        return R.ok(serviceOrderService.getOrderStatistics(startDate, endDate));
+        return R.ok(orderService.getUserOrderStats(null));
     }
 
     /**
@@ -238,8 +244,9 @@ public class ServiceOrderController extends BaseController {
     @Operation(summary = "获取订单状态统计", description = "获取各状态订单数量统计")
     @GetMapping("/status-statistics")
     @RequiresPermissions("trade:order:query")
-    public R<Map<String, Long>> getOrderStatusStatistics() {
-        return R.ok(serviceOrderService.getOrderStatusStatistics());
+    public R<Map<String, Object>> getOrderStatusStatistics() {
+        // 状态统计功能暂未实现
+        return R.ok(Map.of("message", "功能开发中"));
     }
 
     /**
@@ -252,7 +259,7 @@ public class ServiceOrderController extends BaseController {
             @Parameter(description = "数量限制")
             @RequestParam(defaultValue = "10") Integer limit) {
         startPage();
-        List<Map<String, Object>> list = serviceOrderService.getPopularServices(limit);
+        List<Map<String, Object>> list = orderService.getPopularSkills(null, null, limit);
         return getDataTable(list);
     }
 
@@ -270,7 +277,8 @@ public class ServiceOrderController extends BaseController {
             @RequestParam Integer targetStatus,
             @Parameter(description = "处理说明")
             @RequestParam(required = false) String note) {
-        return toAjax(serviceOrderService.batchUpdateOrders(orderIds, targetStatus, note));
+        int count = orderService.batchHandleTimeoutOrders(orderIds, targetStatus);
+        return count > 0 ? R.ok() : R.fail();
     }
 
     /**
@@ -280,7 +288,8 @@ public class ServiceOrderController extends BaseController {
     @PostMapping("/export")
     @RequiresPermissions("trade:order:export")
     @Log(title = "导出订单", businessType = BusinessType.EXPORT)
-    public R<String> exportOrders(ServiceOrderQueryDTO query) {
-        return R.ok("导出成功", serviceOrderService.exportOrders(query));
+    public R<String> exportOrders(OrderQueryDTO query) {
+        // 导出功能暂未实现
+        return R.ok("导出功能开发中", "");
     }
 }

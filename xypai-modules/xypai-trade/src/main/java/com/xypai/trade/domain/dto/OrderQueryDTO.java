@@ -80,4 +80,16 @@ public class OrderQueryDTO extends BaseEntity {
      */
     @Schema(description = "排序方式")
     private String orderBy;
+
+    /**
+     * 开始时间
+     */
+    @Schema(description = "开始时间")
+    private String beginTime;
+
+    /**
+     * 结束时间
+     */
+    @Schema(description = "结束时间")
+    private String endTime;
 }

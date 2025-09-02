@@ -164,6 +164,12 @@ public class ContentActionServiceImpl implements IContentActionService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public boolean shareContent(Long contentId) {
+        return shareContent(contentId, null);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean shareContent(Long contentId, String shareTarget) {
         ContentActionDTO actionDTO = ContentActionDTO.builder()
                 .contentId(contentId)
@@ -466,5 +472,95 @@ public class ContentActionServiceImpl implements IContentActionService {
                 .createdAt(action.getCreatedAt())
                 .extraData(action.getData())
                 .build();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean commentContent(ContentActionDTO commentDTO) {
+        return executeAction(commentDTO);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean signupActivity(ContentActionDTO signupDTO) {
+        return executeAction(signupDTO);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean reportContent(ContentActionDTO reportDTO) {
+        return executeAction(reportDTO);
+    }
+
+    @Override
+    public List<ContentActionVO> getContentLikes(Long contentId) {
+        ContentActionQueryDTO query = ContentActionQueryDTO.builder()
+                .contentId(contentId)
+                .action(ContentAction.Action.LIKE.getCode())
+                .build();
+        return selectActionList(query);
+    }
+
+    @Override
+    public List<ContentActionVO> getContentComments(Long contentId) {
+        return selectContentComments(contentId, 50);
+    }
+
+    @Override
+    public List<ContentActionVO> getActivitySignups(Long activityId) {
+        return selectActivitySignups(activityId);
+    }
+
+    @Override
+    public List<ContentActionVO> getMyCollections(Integer contentType) {
+        return selectUserCollections(null, 50);
+    }
+
+    @Override
+    public List<ContentActionVO> getMyComments() {
+        return selectUserActivities(null, 50);
+    }
+
+    @Override
+    public Map<String, Boolean> checkUserActionStatus(Long contentId) {
+        Map<String, Object> status = getUserActionStatus(contentId, null);
+        Map<String, Boolean> result = new HashMap<>();
+        for (Map.Entry<String, Object> entry : status.entrySet()) {
+            result.put(entry.getKey(), (Boolean) entry.getValue());
+        }
+        return result;
+    }
+
+    @Override
+    public Map<String, Long> getContentActionStatistics(Long contentId) {
+        Map<String, Object> stats = getContentActionStats(contentId);
+        Map<String, Long> result = new HashMap<>();
+        for (Map.Entry<String, Object> entry : stats.entrySet()) {
+            result.put(entry.getKey(), (Long) entry.getValue());
+        }
+        return result;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteAction(Long actionId) {
+        if (actionId == null) {
+            throw new ServiceException("行为记录ID不能为空");
+        }
+
+        ContentAction action = contentActionMapper.selectById(actionId);
+        if (action == null) {
+            throw new ServiceException("行为记录不存在");
+        }
+
+        // 检查权限
+        Long currentUserId = SecurityUtils.getUserId();
+        if (currentUserId != null && !currentUserId.equals(action.getUserId())) {
+            throw new ServiceException("无权限删除该行为记录");
+        }
+
+        int result = contentActionMapper.deleteById(actionId);
+        log.info("删除行为记录成功，记录ID：{}", actionId);
+        return result > 0;
     }
 }

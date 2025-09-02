@@ -6,7 +6,7 @@ import com.xypai.common.core.web.page.TableDataInfo;
 import com.xypai.common.log.annotation.Log;
 import com.xypai.common.log.enums.BusinessType;
 import com.xypai.common.security.annotation.RequiresPermissions;
-import com.xypai.content.domain.dto.ContentActionAddDTO;
+import com.xypai.content.domain.dto.ContentActionDTO;
 import com.xypai.content.domain.dto.ContentActionQueryDTO;
 import com.xypai.content.domain.vo.ContentActionVO;
 import com.xypai.content.service.IContentActionService;
@@ -45,7 +45,7 @@ public class ContentActionController extends BaseController {
     public R<Void> likeContent(
             @Parameter(description = "内容ID", required = true)
             @PathVariable Long contentId) {
-        return toAjax(contentActionService.likeContent(contentId));
+        return contentActionService.likeContent(contentId) ? R.ok() : R.fail();
     }
 
     /**
@@ -58,7 +58,7 @@ public class ContentActionController extends BaseController {
     public R<Void> unlikeContent(
             @Parameter(description = "内容ID", required = true)
             @PathVariable Long contentId) {
-        return toAjax(contentActionService.unlikeContent(contentId));
+        return contentActionService.unlikeContent(contentId) ? R.ok() : R.fail();
     }
 
     /**
@@ -68,8 +68,8 @@ public class ContentActionController extends BaseController {
     @PostMapping("/comment")
     @RequiresPermissions("content:action:add")
     @Log(title = "评论内容", businessType = BusinessType.INSERT)
-    public R<Void> commentContent(@Validated @RequestBody ContentActionAddDTO commentDTO) {
-        return toAjax(contentActionService.commentContent(commentDTO));
+    public R<Void> commentContent(@Validated @RequestBody ContentActionDTO commentDTO) {
+        return contentActionService.commentContent(commentDTO) ? R.ok() : R.fail();
     }
 
     /**
@@ -82,7 +82,7 @@ public class ContentActionController extends BaseController {
     public R<Void> shareContent(
             @Parameter(description = "内容ID", required = true)
             @PathVariable Long contentId) {
-        return toAjax(contentActionService.shareContent(contentId));
+        return contentActionService.shareContent(contentId) ? R.ok() : R.fail();
     }
 
     /**
@@ -95,7 +95,7 @@ public class ContentActionController extends BaseController {
     public R<Void> collectContent(
             @Parameter(description = "内容ID", required = true)
             @PathVariable Long contentId) {
-        return toAjax(contentActionService.collectContent(contentId));
+        return contentActionService.collectContent(contentId) ? R.ok() : R.fail();
     }
 
     /**
@@ -108,7 +108,7 @@ public class ContentActionController extends BaseController {
     public R<Void> uncollectContent(
             @Parameter(description = "内容ID", required = true)
             @PathVariable Long contentId) {
-        return toAjax(contentActionService.uncollectContent(contentId));
+        return contentActionService.uncollectContent(contentId) ? R.ok() : R.fail();
     }
 
     /**
@@ -118,8 +118,8 @@ public class ContentActionController extends BaseController {
     @PostMapping("/signup")
     @RequiresPermissions("content:action:add")
     @Log(title = "活动报名", businessType = BusinessType.INSERT)
-    public R<Void> signupActivity(@Validated @RequestBody ContentActionAddDTO signupDTO) {
-        return toAjax(contentActionService.signupActivity(signupDTO));
+    public R<Void> signupActivity(@Validated @RequestBody ContentActionDTO signupDTO) {
+        return contentActionService.signupActivity(signupDTO) ? R.ok() : R.fail();
     }
 
     /**
@@ -132,7 +132,7 @@ public class ContentActionController extends BaseController {
     public R<Void> cancelSignup(
             @Parameter(description = "内容ID", required = true)
             @PathVariable Long contentId) {
-        return toAjax(contentActionService.cancelSignup(contentId));
+        return contentActionService.cancelSignup(contentId) ? R.ok() : R.fail();
     }
 
     /**
@@ -246,8 +246,8 @@ public class ContentActionController extends BaseController {
     @PostMapping("/report")
     @RequiresPermissions("content:action:add")
     @Log(title = "举报内容", businessType = BusinessType.INSERT)
-    public R<Void> reportContent(@Validated @RequestBody ContentActionAddDTO reportDTO) {
-        return toAjax(contentActionService.reportContent(reportDTO));
+    public R<Void> reportContent(@Validated @RequestBody ContentActionDTO reportDTO) {
+        return contentActionService.reportContent(reportDTO) ? R.ok() : R.fail();
     }
 
     /**
@@ -260,6 +260,6 @@ public class ContentActionController extends BaseController {
     public R<Void> deleteAction(
             @Parameter(description = "行为记录ID", required = true)
             @PathVariable Long actionId) {
-        return toAjax(contentActionService.deleteAction(actionId));
+        return contentActionService.deleteAction(actionId) ? R.ok() : R.fail();
     }
 }

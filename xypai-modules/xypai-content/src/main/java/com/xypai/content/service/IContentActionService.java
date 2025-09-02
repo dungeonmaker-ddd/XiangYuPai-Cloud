@@ -24,6 +24,38 @@ public interface IContentActionService {
     boolean executeAction(ContentActionDTO actionDTO);
 
     /**
+     * 评论内容 (兼容旧接口)
+     *
+     * @param commentDTO 评论数据
+     * @return 是否成功
+     */
+    boolean commentContent(ContentActionDTO commentDTO);
+
+    /**
+     * 活动报名 (兼容旧接口)
+     *
+     * @param signupDTO 报名数据
+     * @return 是否成功
+     */
+    boolean signupActivity(ContentActionDTO signupDTO);
+
+    /**
+     * 举报内容 (兼容旧接口)
+     *
+     * @param reportDTO 举报数据
+     * @return 是否成功
+     */
+    boolean reportContent(ContentActionDTO reportDTO);
+
+    /**
+     * 分享内容 (兼容单参数)
+     *
+     * @param contentId 内容ID
+     * @return 是否成功
+     */
+    boolean shareContent(Long contentId);
+
+    /**
      * 取消内容行为(取消点赞、删除评论等)
      *
      * @param contentId 内容ID
@@ -209,4 +241,67 @@ public interface IContentActionService {
      * @return 热门评论列表
      */
     List<ContentActionVO> selectHotComments(Long contentId, Integer limit);
+
+    /**
+     * 获取内容点赞列表
+     *
+     * @param contentId 内容ID
+     * @return 点赞列表
+     */
+    List<ContentActionVO> getContentLikes(Long contentId);
+
+    /**
+     * 获取内容评论列表
+     *
+     * @param contentId 内容ID
+     * @return 评论列表
+     */
+    List<ContentActionVO> getContentComments(Long contentId);
+
+    /**
+     * 获取活动报名列表
+     *
+     * @param activityId 活动ID
+     * @return 报名列表
+     */
+    List<ContentActionVO> getActivitySignups(Long activityId);
+
+    /**
+     * 获取我的收藏列表
+     *
+     * @param contentType 内容类型
+     * @return 收藏列表
+     */
+    List<ContentActionVO> getMyCollections(Integer contentType);
+
+    /**
+     * 获取我的评论列表
+     *
+     * @return 评论列表
+     */
+    List<ContentActionVO> getMyComments();
+
+    /**
+     * 检查用户行为状态
+     *
+     * @param contentId 内容ID
+     * @return 状态信息
+     */
+    Map<String, Boolean> checkUserActionStatus(Long contentId);
+
+    /**
+     * 获取内容行为统计
+     *
+     * @param contentId 内容ID
+     * @return 统计信息
+     */
+    Map<String, Long> getContentActionStatistics(Long contentId);
+
+    /**
+     * 删除行为记录
+     *
+     * @param actionId 行为记录ID
+     * @return 是否成功
+     */
+    boolean deleteAction(Long actionId);
 }

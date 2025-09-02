@@ -71,7 +71,7 @@ public class ContentController extends BaseController {
     @RequiresPermissions("content:content:add")
     @Log(title = "内容管理", businessType = BusinessType.INSERT)
     public R<Void> add(@Validated @RequestBody ContentAddDTO contentAddDTO) {
-        return toAjax(contentService.insertContent(contentAddDTO));
+        return contentService.insertContent(contentAddDTO) ? R.ok() : R.fail();
     }
 
     /**
@@ -82,7 +82,7 @@ public class ContentController extends BaseController {
     @RequiresPermissions("content:content:edit")
     @Log(title = "内容管理", businessType = BusinessType.UPDATE)
     public R<Void> edit(@Validated @RequestBody ContentUpdateDTO contentUpdateDTO) {
-        return toAjax(contentService.updateContent(contentUpdateDTO));
+        return contentService.updateContent(contentUpdateDTO) ? R.ok() : R.fail();
     }
 
     /**
@@ -95,7 +95,7 @@ public class ContentController extends BaseController {
     public R<Void> remove(
             @Parameter(description = "内容ID数组", required = true)
             @PathVariable Long[] contentIds) {
-        return toAjax(contentService.deleteContentByIds(Arrays.asList(contentIds)));
+        return contentService.deleteContentByIds(Arrays.asList(contentIds)) ? R.ok() : R.fail();
     }
 
     /**
@@ -108,7 +108,7 @@ public class ContentController extends BaseController {
     public R<Void> publishContent(
             @Parameter(description = "内容ID", required = true)
             @PathVariable Long contentId) {
-        return toAjax(contentService.publishContent(contentId));
+        return contentService.publishContent(contentId) ? R.ok() : R.fail();
     }
 
     /**
@@ -121,7 +121,7 @@ public class ContentController extends BaseController {
     public R<Void> archiveContent(
             @Parameter(description = "内容ID", required = true)
             @PathVariable Long contentId) {
-        return toAjax(contentService.archiveContent(contentId));
+        return contentService.archiveContent(contentId) ? R.ok() : R.fail();
     }
 
     /**
@@ -224,7 +224,7 @@ public class ContentController extends BaseController {
     @Operation(summary = "获取内容类型统计", description = "获取各类型内容数量统计")
     @GetMapping("/type-statistics")
     @RequiresPermissions("content:content:query")
-    public R<Map<String, Long>> getContentTypeStatistics() {
+    public R<Map<String, Object>> getContentTypeStatistics() {
         return R.ok(contentService.getContentTypeStatistics());
     }
 
@@ -238,7 +238,7 @@ public class ContentController extends BaseController {
     public R<Void> batchPublishContents(
             @Parameter(description = "内容ID列表", required = true)
             @RequestBody List<Long> contentIds) {
-        return toAjax(contentService.batchPublishContents(contentIds));
+        return contentService.batchPublishContents(contentIds) ? R.ok() : R.fail();
     }
 
     /**
@@ -251,6 +251,6 @@ public class ContentController extends BaseController {
     public R<Void> batchArchiveContents(
             @Parameter(description = "内容ID列表", required = true)
             @RequestBody List<Long> contentIds) {
-        return toAjax(contentService.batchArchiveContents(contentIds));
+        return contentService.batchArchiveContents(contentIds) ? R.ok() : R.fail();
     }
 }

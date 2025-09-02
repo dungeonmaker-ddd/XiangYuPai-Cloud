@@ -42,6 +42,14 @@ public interface IContentService {
     boolean createContent(ContentAddDTO contentAddDTO);
 
     /**
+     * 插入内容(兼容控制器)
+     *
+     * @param contentAddDTO 内容数据
+     * @return 是否成功
+     */
+    boolean insertContent(ContentAddDTO contentAddDTO);
+
+    /**
      * 更新内容
      *
      * @param contentUpdateDTO 更新数据
@@ -56,6 +64,14 @@ public interface IContentService {
      * @return 是否成功
      */
     boolean deleteContent(List<Long> contentIds);
+
+    /**
+     * 删除内容(兼容控制器)
+     *
+     * @param contentIds 内容ID列表
+     * @return 是否成功
+     */
+    boolean deleteContentByIds(List<Long> contentIds);
 
     /**
      * 发布内容(草稿 -> 发布)
@@ -73,6 +89,14 @@ public interface IContentService {
      * @return 是否成功
      */
     boolean archiveContent(Long contentId, String reason);
+
+    /**
+     * 下架内容(兼容控制器)
+     *
+     * @param contentId 内容ID
+     * @return 是否成功
+     */
+    boolean archiveContent(Long contentId);
 
     /**
      * 查询我的内容列表
@@ -177,4 +201,81 @@ public interface IContentService {
      * @return 是否成功
      */
     boolean incrementViewCount(Long contentId);
+
+    /**
+     * 获取热门内容
+     *
+     * @param type 内容类型
+     * @param limit 限制数量
+     * @return 内容列表
+     */
+    List<ContentListVO> getHotContents(Integer type, Integer limit);
+
+    /**
+     * 获取推荐内容
+     *
+     * @param type 内容类型
+     * @param limit 限制数量
+     * @return 内容列表
+     */
+    List<ContentListVO> getRecommendedContents(Integer type, Integer limit);
+
+    /**
+     * 搜索内容
+     *
+     * @param keyword 关键词
+     * @param type 内容类型
+     * @return 内容列表
+     */
+    List<ContentListVO> searchContents(String keyword, Integer type);
+
+    /**
+     * 获取用户内容
+     *
+     * @param userId 用户ID
+     * @param type 内容类型
+     * @return 内容列表
+     */
+    List<ContentListVO> getUserContents(Long userId, Integer type);
+
+    /**
+     * 获取我的内容
+     *
+     * @param type 内容类型
+     * @param status 内容状态
+     * @return 内容列表
+     */
+    List<ContentListVO> getMyContents(Integer type, Integer status);
+
+    /**
+     * 获取内容统计 (兼容控制器)
+     *
+     * @param beginTime 开始时间
+     * @param endTime 结束时间
+     * @return 统计信息
+     */
+    Map<String, Object> getContentStatistics(String beginTime, String endTime);
+
+    /**
+     * 获取内容类型统计
+     *
+     * @return 统计信息
+     */
+    Map<String, Object> getContentTypeStatistics();
+
+    /**
+     * 批量发布内容
+     *
+     * @param contentIds 内容ID列表
+     * @return 是否成功
+     */
+    boolean batchPublishContents(List<Long> contentIds);
+
+    /**
+     * 批量下架内容
+     *
+     * @param contentIds 内容ID列表
+     * @return 是否成功
+     */
+    boolean batchArchiveContents(List<Long> contentIds);
 }

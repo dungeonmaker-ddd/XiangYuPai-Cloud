@@ -166,7 +166,7 @@ public class ContentServiceImpl implements IContentService {
             }
         }
 
-        int result = contentMapper.deleteBatchIds(contentIds);
+        int result = contentMapper.deleteByIds(contentIds);
         log.info("删除内容成功，删除数量：{}", result);
         return result > 0;
     }
@@ -655,5 +655,169 @@ public class ContentServiceImpl implements IContentService {
 
     private String getLocationFromData(Map<String, Object> data) {
         return data != null ? (String) data.get("location") : null;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean insertContent(ContentAddDTO contentAddDTO) {
+        return createContent(contentAddDTO);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteContentByIds(List<Long> contentIds) {
+        return deleteContent(contentIds);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean archiveContent(Long contentId) {
+        return archiveContent(contentId, "手动下架");
+    }
+
+    @Override
+    public List<ContentListVO> getHotContents(Integer type, Integer limit) {
+        return selectPopularContentList(type, limit);
+    }
+
+    @Override
+    public List<ContentListVO> getRecommendedContents(Integer type, Integer limit) {
+        List<ContentListVO> contents = selectRecommendedContentList(limit);
+        if (type != null) {
+            return contents.stream()
+                    .filter(content -> type.equals(content.getType()))
+                    .collect(Collectors.toList());
+        }
+        return contents;
+    }
+
+    @Override
+    public List<ContentListVO> searchContents(String keyword, Integer type) {
+        return searchContent(keyword, type, 50);
+    }
+
+    @Override
+    public List<ContentListVO> getUserContents(Long userId, Integer type) {
+        ContentQueryDTO query = ContentQueryDTO.builder()
+                .userId(userId)
+                .type(type)
+                .status(Content.Status.PUBLISHED.getCode())
+                .orderBy("latest")
+                .build();
+        return selectContentList(query);
+    }
+
+    @Override
+    public List<ContentListVO> getMyContents(Integer type, Integer status) {
+        ContentQueryDTO query = ContentQueryDTO.builder()
+                .type(type)
+                .status(status)
+                .orderBy("latest")
+                .build();
+        return selectMyContentList(query);
+    }
+
+    @Override
+    public Map<String, Object> getContentStatistics(String beginTime, String endTime) {
+        // 根据时间范围统计内容
+        LambdaQueryWrapper<Content> queryWrapper = Wrappers.lambdaQuery(Content.class)
+                .between(StringUtils.isNotBlank(beginTime) && StringUtils.isNotBlank(endTime),
+                        Content::getCreatedAt, beginTime, endTime);
+
+        List<Content> contents = contentMapper.selectList(queryWrapper);
+        
+        Map<String, Object> statistics = new HashMap<>();
+        statistics.put("totalCount", contents.size());
+        
+        Map<Integer, Long> typeStats = contents.stream()
+                .collect(Collectors.groupingBy(Content::getType, Collectors.counting()));
+        
+        statistics.put("feedCount", typeStats.getOrDefault(Content.Type.FEED.getCode(), 0L));
+        statistics.put("activityCount", typeStats.getOrDefault(Content.Type.ACTIVITY.getCode(), 0L));
+        statistics.put("skillCount", typeStats.getOrDefault(Content.Type.SKILL.getCode(), 0L));
+        
+        return statistics;
+    }
+
+    @Override
+    public Map<String, Object> getContentTypeStatistics() {
+        List<Content> allContents = contentMapper.selectList(null);
+        
+        Map<String, Object> statistics = new HashMap<>();
+        statistics.put("totalCount", allContents.size());
+        
+        Map<Integer, Long> typeStats = allContents.stream()
+                .collect(Collectors.groupingBy(Content::getType, Collectors.counting()));
+        
+        statistics.put("feedCount", typeStats.getOrDefault(Content.Type.FEED.getCode(), 0L));
+        statistics.put("activityCount", typeStats.getOrDefault(Content.Type.ACTIVITY.getCode(), 0L));
+        statistics.put("skillCount", typeStats.getOrDefault(Content.Type.SKILL.getCode(), 0L));
+        
+        Map<Integer, Long> statusStats = allContents.stream()
+                .collect(Collectors.groupingBy(Content::getStatus, Collectors.counting()));
+        
+        statistics.put("publishedCount", statusStats.getOrDefault(Content.Status.PUBLISHED.getCode(), 0L));
+        statistics.put("draftCount", statusStats.getOrDefault(Content.Status.DRAFT.getCode(), 0L));
+        statistics.put("archivedCount", statusStats.getOrDefault(Content.Status.ARCHIVED.getCode(), 0L));
+        
+        return statistics;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean batchPublishContents(List<Long> contentIds) {
+        if (contentIds == null || contentIds.isEmpty()) {
+            throw new ServiceException("内容ID列表不能为空");
+        }
+
+        Long currentUserId = SecurityUtils.getUserId();
+        if (currentUserId == null) {
+            throw new ServiceException("未获取到当前用户信息");
+        }
+
+        // 检查权限
+        List<Content> contents = contentMapper.selectBatchIds(contentIds);
+        for (Content content : contents) {
+            if (!currentUserId.equals(content.getUserId())) {
+                throw new ServiceException("无权限发布内容：" + content.getTitle());
+            }
+        }
+
+        // 批量更新状态
+        for (Long contentId : contentIds) {
+            publishContent(contentId);
+        }
+        
+        log.info("批量发布内容成功，数量：{}", contentIds.size());
+        return true;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean batchArchiveContents(List<Long> contentIds) {
+        if (contentIds == null || contentIds.isEmpty()) {
+            throw new ServiceException("内容ID列表不能为空");
+        }
+
+        Long currentUserId = SecurityUtils.getUserId();
+        if (currentUserId == null) {
+            throw new ServiceException("未获取到当前用户信息");
+        }
+
+        // 检查权限
+        List<Content> contents = contentMapper.selectBatchIds(contentIds);
+        for (Content content : contents) {
+            if (!currentUserId.equals(content.getUserId())) {
+                throw new ServiceException("无权限下架内容：" + content.getTitle());
+            }
+        }
+
+        // 批量下架
+        for (Long contentId : contentIds) {
+            archiveContent(contentId, "批量下架");
+        }
+        
+        log.info("批量下架内容成功，数量：{}", contentIds.size());
+        return true;
     }
 }

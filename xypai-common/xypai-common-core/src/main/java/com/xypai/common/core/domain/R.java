@@ -112,4 +112,39 @@ public class R<T> implements Serializable
     {
         return R.SUCCESS == ret.getCode();
     }
+
+    /**
+     * 根据布尔值返回结果
+     * 
+     * @param result 布尔结果
+     * @return R<Void>
+     */
+    public static R<Void> result(boolean result)
+    {
+        return result ? ok() : fail();
+    }
+
+    /**
+     * 根据布尔值返回结果，带自定义消息
+     * 
+     * @param result 布尔结果
+     * @param successMsg 成功消息
+     * @param failMsg 失败消息
+     * @return R<Void>
+     */
+    public static R<Void> result(boolean result, String successMsg, String failMsg)
+    {
+        return result ? ok(null, successMsg) : fail(failMsg);
+    }
+
+    /**
+     * 根据影响行数返回结果
+     * 
+     * @param rows 影响行数
+     * @return R<Void>
+     */
+    public static R<Void> result(int rows)
+    {
+        return rows > 0 ? ok() : fail();
+    }
 }

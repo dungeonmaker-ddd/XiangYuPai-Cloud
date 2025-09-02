@@ -57,6 +57,25 @@ services:
       - ./redis/conf/redis.conf:/home/xypai/redis/redis.conf
       - ./redis/data:/data
     command: redis-server /home/xypai/redis/redis.conf
+  xypai-rabbitmq:
+    container_name: xypai-rabbitmq
+    image: rabbitmq:3-management
+    restart: always
+    ports:
+      - "5672:5672"    # AMQP端口
+      - "15672:15672"  # 管理界面端口
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_VHOST: /
+    volumes:
+      - ./rabbitmq/data:/var/lib/rabbitmq
+      - ./rabbitmq/logs:/var/log/rabbitmq
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
   xypai-sentinel:
     container_name: xypai-sentinel
     image: bladex/sentinel-dashboard:1.8.6

@@ -17,16 +17,16 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>21</java.version>
-        <spring-boot.version>3.3.5</spring-boot.version>
+        <spring-boot.version>3.2.0</spring-boot.version>
         <spring-cloud.version>2023.0.3</spring-cloud.version>
         <spring-cloud-alibaba.version>2023.0.1.2</spring-cloud-alibaba.version>
-        <spring-boot-admin.version>3.3.5</spring-boot-admin.version>
+        <spring-boot-admin.version>3.2.0</spring-boot-admin.version>
         <mybatis-spring.version>3.0.3</mybatis-spring.version>
         <kaptcha.version>2.3.3</kaptcha.version>
         <pagehelper.boot.version>2.1.0</pagehelper.boot.version>
         <druid.version>1.2.23</druid.version>
         <dynamic-ds.version>4.3.1</dynamic-ds.version>
-        <mybatis-plus.version>3.5.5</mybatis-plus.version>
+        <mybatis-plus.version>3.5.7</mybatis-plus.version>
         <commons.io.version>2.19.0</commons.io.version>
         <velocity.version>2.3</velocity.version>
         <fastjson.version>2.0.57</fastjson.version>
@@ -47,7 +47,6 @@
         <module>xypai-modules</module>
         <module>xypai-api</module>
         <module>xypai-common</module>
-        <module>xypai-users</module>
     </modules>
 
     <dependencyManagement>
@@ -85,6 +84,20 @@
                 <groupId>com.github.xiaoymin</groupId>
                 <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
                 <version>${knife4j.version}</version>
+            </dependency>
+
+            <!-- Knife4j Spring Boot 依赖配置 -->
+            <dependency>
+                <groupId>com.github.xiaoymin</groupId>
+                <artifactId>knife4j-spring-boot-starter</artifactId>
+                <version>3.0.3</version>
+            </dependency>
+
+            <!-- Google Guava -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>31.1-jre</version>
             </dependency>
 
             <!-- Springdoc webmvc 依赖配置 (保持兼容) -->
@@ -163,11 +176,14 @@
             </dependency>
 
             <!-- MyBatis Plus -->
+            <!-- MyBatis Plus for Spring Boot 2.x -->
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-boot-starter</artifactId>
                 <version>${mybatis-plus.version}</version>
             </dependency>
+
+            <!-- MyBatis Plus for Spring Boot 3.x -->
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
@@ -185,6 +201,13 @@
             <dependency>
                 <groupId>com.xypai</groupId>
                 <artifactId>xypai-common-swagger</artifactId>
+                <version>${xypai.version}</version>
+            </dependency>
+
+            <!-- Knife4j API文档模块 -->
+            <dependency>
+                <groupId>com.xypai</groupId>
+                <artifactId>xypai-common-knif4j</artifactId>
                 <version>${xypai.version}</version>
             </dependency>
 
@@ -241,6 +264,20 @@
             <dependency>
                 <groupId>com.xypai</groupId>
                 <artifactId>xypai-api-system</artifactId>
+                <version>${xypai.version}</version>
+            </dependency>
+
+            <!-- SMS接口模块 -->
+            <dependency>
+                <groupId>com.xypai</groupId>
+                <artifactId>sms-interface</artifactId>
+                <version>${xypai.version}</version>
+            </dependency>
+
+            <!-- SMS服务模块 -->
+            <dependency>
+                <groupId>com.xypai</groupId>
+                <artifactId>sms-service</artifactId>
                 <version>${xypai.version}</version>
             </dependency>
 

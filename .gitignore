@@ -44,3 +44,113 @@ nbdist/
 !*/build/*.java
 !*/build/*.html
 !*/build/*.xml
+
+######################################################################
+# Docker相关文件
+# 忽略所有docker子目录下的data和logs目录
+docker/**/data/
+docker/**/logs/
+
+# Docker容器运行时产生的文件
+docker/**/*.log
+docker/**/*.log.*
+docker/**/*.sock
+docker/**/*.pid
+
+# MySQL特定文件
+docker/**/binlog.*
+docker/**/ib_*
+docker/**/undo_*
+docker/**/*.ibd
+docker/**/*.sdi
+docker/**/*.ibt
+docker/**/*.index
+docker/**/*.pem
+docker/**/*.cnf
+docker/**/auto.cnf
+docker/**/ibtmp*
+docker/**/ibdata*
+docker/**/*_buffer_pool
+docker/**/*.CSM
+docker/**/*.CSV
+
+# MySQL以#开头的目录（InnoDB临时文件）
+docker/**/#innodb_*
+docker/**/#ib_*
+
+# RabbitMQ特定文件
+docker/**/*.DCD
+docker/**/*.DCL
+docker/**/*.DAT
+docker/**/*.dets
+docker/**/*.wal
+docker/**/*.rdq
+docker/**/*.jif
+docker/**/.erlang.cookie
+docker/**/rabbit@*
+docker/**/*.segment
+docker/**/.config
+docker/**/.vhost
+docker/**/.queue_name
+docker/**/recovery.dets
+
+# Redis特定文件
+docker/**/*.rdb
+
+# Nacos GC日志文件
+docker/**/nacos_gc.log*
+
+# 通用数据库和应用文件
+docker/**/*.tmp
+docker/**/temp_*
+docker/**/dump.*
+docker/**/mnesia/
+
+# 更多MySQL特定文件和目录
+docker/**/mysql/
+docker/**/performance_schema/
+docker/**/sys/
+docker/**/users/
+docker/**/users_dev/
+docker/**/ry@*/
+docker/**/general_log.*
+docker/**/slow_log.*
+docker/**/*_log.*
+docker/**/cluster_nodes.config
+docker/**/nodes_running_at_shutdown
+docker/**/rabbit_*
+docker/**/schema.DAT
+docker/**/DECISION_TAB.LOG
+docker/**/LATEST.LOG
+docker/**/node-type.txt
+
+# RabbitMQ运行时目录和文件
+docker/**/coordination/
+docker/**/msg_stores/
+docker/**/quorum/
+docker/**/checkpoints/
+docker/**/snapshots/
+docker/**/vhosts/
+docker/**/queues/
+docker/**/msg_store_*/
+docker/**/*-plugins-expand/
+docker/**/meta.dets
+docker/**/names.dets
+
+# 通用运行时文件
+docker/**/*.0
+docker/**/*.1
+docker/**/*.2
+docker/**/*.3
+docker/**/*.4
+docker/**/*.5
+docker/**/*.6
+docker/**/*.7
+docker/**/*.8
+docker/**/*.9
+docker/**/.*
+!docker/**/conf/
+!docker/**/*.conf
+!docker/**/*.properties
+!docker/**/dockerfile
+!docker/**/Dockerfile

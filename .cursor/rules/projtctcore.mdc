@@ -1,0 +1,395 @@
+---
+alwaysApply: false
+---
+
+@startuml
+
+' ==========================================
+' 🏗️ XY相遇派完整系统 - 综合类图设计
+' 11张表实现完整功能：用户+内容+交易+聊天
+' 设计理念：计算优于存储，JSON灵活扩展
+' ==========================================
+
+' ===== 核心用户模块 (4表) =====
+
+class User {
+    + id : Long
+    + username : String  
+    + mobile : String
+    + password : String
+    + status : Integer
+    + created_at : DateTime
+    --
+    ' 用户基础信息表
+    ' id: 用户唯一标识(雪花ID)
+    ' username: 登录用户名(唯一)
+    ' mobile: 手机号(唯一,登录凭证)
+    ' password: 密码哈希值
+    ' status: 用户状态(0=禁用,1=正常,2=冻结)
+    ' created_at: 注册时间
+}
+
+class UserProfile {
+    + user_id : Long
+    + nickname : String
+    + avatar : String
+    + metadata : JSON
+    --
+    ' 用户资料扩展表
+    ' user_id: 关联用户ID
+    ' nickname: 用户昵称(显示名)
+    ' avatar: 头像URL
+    ' metadata: 扩展信息JSON
+    ' {email, real_name, location, bio...}
+}
+
+class UserWallet {
+    + user_id : Long
+    + balance : Long
+    + version : Integer
+    --
+    ' 用户钱包表
+    ' user_id: 关联用户ID
+    ' balance: 余额(分为单位,避免精度问题)
+    ' version: 乐观锁版本号(并发控制)
+}
+
+class Transaction {
+    + id : Long
+    + user_id : Long
+    + amount : Long
+    + type : String
+    + ref_id : String
+    + created_at : DateTime
+    --
+    ' 统一交易流水表
+    ' id: 交易记录ID
+    ' user_id: 用户ID
+    ' amount: 交易金额(正负表示收支)
+    ' type: 交易类型(充值/消费/积分/退款)
+    ' ref_id: 关联业务ID(订单号/活动ID等)
+    ' created_at: 交易时间
+}
+
+' ===== 内容模块 (3表) =====
+
+class Content {
+    + id : Long
+    + user_id : Long
+    + type : Integer
+    + title : String
+    + data : JSON
+    + status : Integer
+    + created_at : DateTime
+    --
+    ' 万能内容表(动态/活动/技能)
+    ' id: 内容唯一ID
+    ' user_id: 创建者ID
+    ' type: 内容类型(1=动态,2=活动,3=技能)
+    ' title: 内容标题
+    ' data: 类型特定数据JSON
+    ' status: 内容状态(0=草稿,1=发布,2=下架)
+    ' created_at: 创建时间
+}
+
+class ContentAction {
+    + id : Long
+    + content_id : Long
+    + user_id : Long
+    + action : Integer
+    + data : JSON
+    + created_at : DateTime
+    --
+    ' 内容行为统一表
+    ' id: 行为记录ID
+    ' content_id: 关联内容ID
+    ' user_id: 操作用户ID
+    ' action: 行为类型(1=点赞,2=评论,6=报名)
+    ' data: 行为扩展数据JSON
+    ' created_at: 行为时间
+}
+
+class UserRelation {
+    + id : Long
+    + user_id : Long
+    + target_id : Long
+    + type : Integer
+    + created_at : DateTime
+    --
+    ' 用户关系表
+    ' id: 关系记录ID
+    ' user_id: 发起用户ID
+    ' target_id: 目标用户ID
+    ' type: 关系类型(1=关注,2=拉黑,3=分组)
+    ' created_at: 建立关系时间
+}
+
+' ===== 交易模块 (1表) =====
+
+class ServiceOrder {
+    + id : Long
+    + buyer_id : Long
+    + seller_id : Long
+    + content_id : Long
+    + amount : Long
+    + duration : Integer
+    + status : Integer
+    + data : JSON
+    + created_at : DateTime
+    --
+    ' 服务订单表
+    ' id: 订单唯一ID
+    ' buyer_id: 买家用户ID
+    ' seller_id: 卖家用户ID
+    ' content_id: 关联技能内容ID
+    ' amount: 订单金额(分)
+    ' duration: 服务时长(小时)
+    ' status: 订单状态(0=待付款,3=已完成)
+    ' data: 订单扩展信息JSON
+    ' created_at: 下单时间
+}
+
+' ===== 聊天模块 (3表) =====
+
+class ChatConversation {
+    + id : Long
+    + type : Integer
+    + title : String
+    + creator_id : Long
+    + metadata : JSON
+    + status : Integer
+    + created_at : DateTime
+    + updated_at : DateTime
+    --
+    ' 聊天会话表
+    ' id: 会话唯一ID(雪花ID)
+    ' type: 会话类型(1=私聊,2=群聊,3=系统通知)
+    ' title: 会话标题(群聊名称,私聊可为空)
+    ' creator_id: 创建者ID(群主/发起人)
+    ' metadata: 扩展信息JSON
+    ' {description, avatar, settings...}
+    ' status: 会话状态(0=已解散,1=正常,2=已归档)
+    ' created_at: 创建时间
+    ' updated_at: 最后活跃时间
+}
+
+class ChatMessage {
+    + id : Long
+    + conversation_id : Long
+    + sender_id : Long
+    + message_type : Integer
+    + content : String
+    + media_data : JSON
+    + reply_to_id : Long
+    + status : Integer
+    + created_at : DateTime
+    --
+    ' 聊天消息表
+    ' id: 消息唯一ID
+    ' conversation_id: 所属会话ID
+    ' sender_id: 发送者ID(NULL=系统消息)
+    ' message_type: 消息类型(1=文本,2=图片,3=语音,4=视频,5=文件,6=系统通知)
+    ' content: 消息内容(文本/文件名/系统通知文本)
+    ' media_data: 媒体数据JSON{url,size,duration...}
+    ' reply_to_id: 回复的消息ID(引用回复)
+    ' status: 消息状态(0=已删除,1=正常,2=已撤回)
+    ' created_at: 发送时间
+}
+
+class ChatParticipant {
+    + id : Long
+    + conversation_id : Long
+    + user_id : Long
+    + role : Integer
+    + join_time : DateTime
+    + last_read_time : DateTime
+    + status : Integer
+    --
+    ' 会话参与者表
+    ' id: 参与记录ID
+    ' conversation_id: 会话ID
+    ' user_id: 参与用户ID
+    ' role: 角色权限(1=成员,2=管理员,3=群主)
+    ' join_time: 加入时间
+    ' last_read_time: 最后已读时间(未读消息计算)
+    ' status: 参与状态(0=已退出,1=正常,2=已禁言)
+}
+
+' ==========================================
+' 🔗 UML关系定义 - 符合PlantUML标准语法
+' ==========================================
+
+' 📌 PlantUML关系符号说明：
+' *--  : 组合(Composition) - 实心菱形，强依赖
+' o--  : 聚合(Aggregation) - 空心菱形，弱依赖  
+' --   : 关联(Association) - 实线，结构化关系
+' ..>  : 依赖(Dependency) - 虚线箭头，使用关系
+' <|-- : 继承(Inheritance) - 三角箭头，泛化关系
+' <|.. : 实现(Realization) - 虚线三角，接口实现
+
+' 📌 多重性表示说明：
+' "1"     : 恰好一个
+' "0..1"  : 零个或一个  
+' "0..*"  : 零个或多个
+' "1..*"  : 一个或多个
+
+' ===== 组合关系 (Composition) *-- =====
+' 🔸 特征：实心菱形，生命周期绑定
+' 🔸 语义：整体-部分，部分不能独立存在
+' 🔸 删除策略：CASCADE DELETE
+
+' 用户核心组合关系
+User "1" *-- "1" UserProfile : "拥有资料\n生命周期绑定"
+User "1" *-- "1" UserWallet : "拥有钱包\n强依赖关系"
+
+' 聊天模块组合关系
+ChatConversation "1" *-- "0..*" ChatMessage : "会话消息\n生命周期绑定"
+ChatConversation "1" *-- "1..*" ChatParticipant : "会话参与者\n强依赖关系"
+
+' ===== 聚合关系 (Aggregation) o-- =====  
+' 🔸 特征：空心菱形，弱依赖关系
+' 🔸 语义：整体-部分，部分可独立存在
+' 🔸 删除策略：SET NULL 或 RESTRICT
+
+' 用户业务聚合关系
+User "1" o-- "0..*" Transaction : "产生交易\n历史记录保留"
+User "1" o-- "0..*" Content : "创建内容\n可匿名化保存"
+Content "1" o-- "0..*" ContentAction : "内容互动\n行为记录"
+
+' ===== 关联关系 (Association) -- =====
+' 🔸 特征：实线连接，结构化关系
+' 🔸 语义：类之间的引用关系
+' 🔸 删除策略：RESTRICT 或业务逻辑处理
+
+' 用户行为关联
+User "1" -- "0..*" ContentAction : "用户操作\n行为追踪"
+
+' 聊天用户关联
+User "创建者\ncreator" -- "0..*" ChatConversation : "创建会话\n群主权限"
+User "发送者\nsender" -- "0..*" ChatMessage : "发送消息\n内容创建"
+User "参与者\nparticipant" -- "0..*" ChatParticipant : "加入会话\n成员身份"
+
+' ===== 自关联关系 (Self Association) =====
+' 🔸 特征：一个类与自身建立关系
+' 🔸 应用：用户关注、组织层级、消息回复等
+' 🔸 实现：同一表中的两个外键字段
+
+' 用户关系自关联
+User "发起者\nsource" -- "0..*" UserRelation : "主动建立\n关系发起"
+User "目标者\ntarget" -- "0..*" UserRelation : "被动接受\n关系目标"
+
+' 消息回复自关联
+ChatMessage "原消息\noriginal" -- "0..*" ChatMessage : "回复消息\n引用关系"
+
+' ===== 多角色关联 (Multi-Role Association) =====
+' 🔸 特征：同一个类在关系中扮演不同角色
+' 🔸 实现：使用角色名称区分不同的关系端点
+
+' 订单多角色关联
+User "买家\nbuyer" -- "0..*" ServiceOrder : "下单购买\n消费者角色"
+User "卖家\nseller" -- "0..*" ServiceOrder : "提供服务\n服务者角色"
+
+' ===== 业务关联 (Business Association) =====
+' 🔸 特征：表示业务层面的引用关系
+' 🔸 目的：连接不同业务领域的实体
+
+' 订单内容关联
+Content "技能服务\nskill" -- "0..*" ServiceOrder : "订单内容\n服务标的"
+
+' ===== 跨模块业务关联 =====
+' 🔸 聊天与订单的业务整合
+' 🔸 支持订单相关的聊天会话
+
+ServiceOrder "1" ..> ChatConversation : "订单聊天\n业务集成"
+
+' ==========================================
+' 📝 关系说明注释
+' ==========================================
+
+note right of User::UserProfile
+  组合关系说明：
+  • 用户删除时资料必须删除
+  • Profile无法独立存在
+  • 数据库：ON DELETE CASCADE
+end note
+
+note right of User::Transaction
+  聚合关系说明：
+  • 用户删除时交易记录保留
+  • 支持数据审计和分析
+  • 数据库：ON DELETE SET NULL
+end note
+
+note bottom of UserRelation
+  自关联关系说明：
+  • user_id -> 关系发起者
+  • target_id -> 关系目标者
+  • 支持查询：我关注的人、关注我的人
+  • 业务场景：关注/粉丝、好友、拉黑
+end note
+
+note bottom of ServiceOrder
+  多角色关联说明：
+  • buyer_id -> 订单购买者
+  • seller_id -> 服务提供者
+  • 同一用户可同时是买家和卖家
+  • 支持角色切换和统计分析
+end note
+
+note bottom of ChatMessage
+  消息自关联说明：
+  • reply_to_id -> 被回复的消息ID
+  • 支持消息引用和线程显示
+  • 被回复消息删除时关系保留
+  • 业务场景：@回复、引用转发
+end note
+
+note right of Content::ServiceOrder
+  业务关联说明：
+  • content_id 引用技能服务内容
+  • 订单基于具体的技能内容创建
+  • 支持技能服务的销售统计
+  • 内容下架时订单历史保留
+end note
+
+note right of ServiceOrder::ChatConversation
+  跨模块业务整合：
+  • 订单创建后可自动创建聊天会话
+  • 买卖双方在订单会话中沟通
+  • 支持订单状态变更通知
+  • 提升用户交易体验
+end note
+
+' ===== 扩展信息注释 =====
+
+note top of User
+  **系统核心实体**
+  • 所有业务模块的基础
+  • 支持多角色身份切换
+  • 统一的用户状态管理
+  • 扩展性预留充分
+end note
+
+note top of Content
+  **万能内容设计**
+  type=1: 动态发布
+  type=2: 活动管理  
+  type=3: 技能服务
+  
+  **data JSON灵活扩展**
+  支持不同类型的差异化字段
+  避免创建多个专用表
+end note
+
+note top of ChatConversation
+  **会话类型统一**
+  type=1: 私聊会话
+  type=2: 群聊会话
+  type=3: 系统通知
+  type=4: 订单会话(扩展)
+  
+  **metadata扩展示例**
+  群设置、成员限制、聊天规则等
+end note
+
+@enduml

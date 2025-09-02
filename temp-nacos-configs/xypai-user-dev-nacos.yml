@@ -1,0 +1,137 @@
+# XyPai User Service Nacos配置
+# Data ID: xypai-user-dev.yml
+# Group: DEFAULT_GROUP
+
+# Spring配置
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+  datasource:
+    druid:
+      stat-view-servlet:
+        enabled: true
+        loginUsername: ruoyi
+        loginPassword: 123456
+    dynamic:
+      druid:
+        initial-size: 5
+        min-idle: 5
+        maxActive: 20
+        maxWait: 60000
+        connectTimeout: 30000
+        socketTimeout: 60000
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        validationQuery: SELECT 1 FROM DUAL
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        maxPoolPreparedStatementPerConnectionSize: 20
+        filters: stat,slf4j
+        connectionProperties: druid.stat.mergeSql\=true;druid.stat.slowSqlMillis\=5000
+      datasource:
+        # 主库数据源
+        master:
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          url: jdbc:mysql://localhost:3306/ry-cloud?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+          username: root
+          password: password
+
+# MyBatis配置
+mybatis:
+  # 搜索指定包别名
+  typeAliasesPackage: com.xypai.user
+  # 配置mapper的扫描，找到所有的mapper.xml映射文件
+  mapperLocations: classpath:mapper/**/*.xml
+
+# MyBatis Plus配置（用户模块特有）
+mybatis-plus:
+  configuration:
+    # 自动驼峰命名规则（camel case）映射
+    map-underscore-to-camel-case: true
+    # 当映射结果为null时是否调用映射对象的setter方法
+    call-setters-on-nulls: true
+    # 开发环境打印SQL
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      # 逻辑删除配置
+      logic-delete-field: delFlag
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      # 自动填充配置
+      insert-strategy: not_null
+      update-strategy: not_null
+
+# SpringDoc配置
+springdoc:
+  gatewayUrl: http://localhost:8080/${spring.application.name}
+  api-docs:
+    # 是否开启接口文档
+    enabled: true
+  info:
+    # 标题
+    title: '用户中心模块接口文档'
+    # 描述
+    description: '用户中心模块接口描述'
+    # 作者信息
+    contact:
+      name: XyPai Team
+      url: http://www.xypai.vip
+      email: admin@xypai.vip
+
+# Knife4j配置
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+    enable-search: true
+    enable-debug: true
+    enable-version: true
+    enable-host-text: 用户中心服务
+  basic:
+    enable: false
+    username: admin
+    password: admin123
+
+# 日志配置
+logging:
+  level:
+    com.xypai.user: debug
+    org.springframework.cloud: warn
+    org.springframework.web: info
+    org.springframework.security: warn
+    org.springframework.boot.autoconfigure: warn
+    com.alibaba.druid: info
+    root: info
+
+# 监控端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: 'health,info,metrics,prometheus'
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+# 用户业务配置
+user:
+  config:
+    # 默认密码
+    default-password: "123456"
+    # 密码重试次数
+    password-retry-limit: 5
+    # 账号锁定时间（分钟）
+    account-lock-time: 10
+    # 是否允许重复用户名
+    allow-duplicate-username: false
+    # 是否启用用户注册
+    enable-registration: true

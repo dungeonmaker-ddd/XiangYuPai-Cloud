@@ -1,8 +1,11 @@
 package com.xypai.user.service;
 
+import com.xypai.user.domain.dto.AutoRegisterDTO;
 import com.xypai.user.domain.dto.UserAddDTO;
 import com.xypai.user.domain.dto.UserQueryDTO;
 import com.xypai.user.domain.dto.UserUpdateDTO;
+import com.xypai.user.domain.dto.UserValidateDTO;
+import com.xypai.user.domain.vo.AuthUserVO;
 import com.xypai.user.domain.vo.UserDetailVO;
 import com.xypai.user.domain.vo.UserListVO;
 
@@ -71,6 +74,28 @@ public interface IUserService {
      */
     boolean checkMobileUnique(String mobile, Long userId);
 
+    // ========== 认证服务专用接口 ==========
+
+    /**
+     * 根据用户名获取认证用户信息
+     */
+    AuthUserVO selectAuthUserByUsername(String username);
+
+    /**
+     * 根据手机号获取认证用户信息
+     */
+    AuthUserVO selectAuthUserByMobile(String mobile);
+
+    /**
+     * 验证用户密码
+     */
+    boolean validateUserPassword(UserValidateDTO validateDTO);
+
+    /**
+     * 更新用户最后登录时间
+     */
+    boolean updateLastLoginTime(Long userId);
+
     /**
      * 根据用户名查询用户
      */
@@ -110,4 +135,9 @@ public interface IUserService {
      * 解冻用户
      */
     boolean unfreezeUser(Long userId);
+
+    /**
+     * 短信登录自动注册用户
+     */
+    AuthUserVO autoRegisterUser(AutoRegisterDTO autoRegisterDTO);
 }

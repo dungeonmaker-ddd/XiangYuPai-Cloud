@@ -33,38 +33,50 @@ spring:
             allow-credentials: true
       
       routes:
-        - id: security-oauth
-          uri: lb://security-oauth
+        # 认证中心
+        - id: xypai-auth
+          uri: lb://xypai-auth
           predicates:
             - Path=/auth/**
           filters:
+            # 验证码处理
             - CacheRequestBody
             - ValidateCodeFilter
             - StripPrefix=1
 
-        - id: security-web
-          uri: lb://security-web
+        # 用户模块
+        - id: xypai-user
+          uri: lb://xypai-user
           predicates:
-            - Path=/admin/**
-          filters:
-            - CacheRequestBody
-            - ValidateCodeFilter
-            - StripPrefix=1
-
-        - id: security-oauth-app
-          uri: lb://security-oauth
-          predicates:
-            - Path=/app/**
+            - Path=/user/**
           filters:
             - StripPrefix=1
 
-        - id: user-service
-          uri: lb://user-service
+        # 内容模块
+        - id: xypai-content
+          uri: lb://xypai-content
           predicates:
-            - Path=/users/**
+            - Path=/content/**
           filters:
             - StripPrefix=1
 
+        # 交易模块
+        - id: xypai-trade
+          uri: lb://xypai-trade
+          predicates:
+            - Path=/trade/**
+          filters:
+            - StripPrefix=1
+
+        # 聊天模块
+        - id: xypai-chat
+          uri: lb://xypai-chat
+          predicates:
+            - Path=/chat/**
+          filters:
+            - StripPrefix=1
+
+        # 代码生成
         - id: xypai-gen
           uri: lb://xypai-gen
           predicates:
@@ -72,6 +84,7 @@ spring:
           filters:
             - StripPrefix=1
 
+        # 定时任务
         - id: xypai-job
           uri: lb://xypai-job
           predicates:
@@ -79,6 +92,7 @@ spring:
           filters:
             - StripPrefix=1
 
+        # 系统模块
         - id: xypai-system
           uri: lb://xypai-system
           predicates:
@@ -86,6 +100,7 @@ spring:
           filters:
             - StripPrefix=1
 
+        # 文件服务
         - id: xypai-file
           uri: lb://xypai-file
           predicates:
@@ -93,98 +108,57 @@ spring:
           filters:
             - StripPrefix=1
 
-        - id: social-service
-          uri: lb://xypai-social
-          predicates:
-            - Path=/social/**
-          filters:
-            - StripPrefix=0
-            - AddRequestHeader=X-Service-Name, social-service
-
-        - id: wallet-service
-          uri: lb://xypai-wallet
-          predicates:
-            - Path=/wallets/**
-          filters:
-            - StripPrefix=0
-            - AddRequestHeader=X-Service-Name, wallet-service
-
-        - id: feed-service
-          uri: lb://xypai-feed
-          predicates:
-            - Path=/feeds/**
-          filters:
-            - StripPrefix=0
-            - AddRequestHeader=X-Service-Name, feed-service
-
-        - id: activity-service
-          uri: lb://xypai-activity
-          predicates:
-            - Path=/activities/**
-          filters:
-            - StripPrefix=0
-            - AddRequestHeader=X-Service-Name, activity-service
-
-        - id: interaction-service
-          uri: lb://xypai-interaction
-          predicates:
-            - Path=/interactions/**
-          filters:
-            - StripPrefix=0
-            - AddRequestHeader=X-Service-Name, interaction-service
-
+# 安全配置
 security:
+  # 验证码
   captcha:
     enabled: true
     type: math
+  # 防止XSS攻击
   xss:
     enabled: true
     excludeUrls:
       - /system/notice
 
+  # 不校验白名单
   ignore:
     whites:
+      # 认证相关接口
       - /auth/login
       - /auth/logout
       - /auth/refresh
       - /auth/verify
-      - /auth/user-info
-      - /auth/health
-      - /admin/auth/login
-      - /admin/auth/logout
-      - /admin/auth/refresh
-      - /auth/login/sms
+      - /auth/register
       - /auth/sms/send
-      - /auth/info
-      - /auth/validate
+      - /auth/sms/verify
+      - /auth/health
+      
+      # API文档相关
       - /*/v2/api-docs
       - /*/v3/api-docs
+      - /*/v3/api-docs/**
+      - /*/doc.html
+      - /*/doc.html/**
+      - /*/swagger-ui/**
+      - /*/swagger-ui.html
+      - /*/swagger-resources/**
+      - /*/webjars/**
+      - /*/favicon.ico
+      
+      # 健康检查
       - /actuator/**
+      - /*/actuator/**
+      
+      # 其他
       - /csrf
-      - /auth/doc.html
-      - /auth/doc.html/**
-      - /auth/swagger-ui/**
-      - /auth/swagger-ui.html
-      - /auth/swagger-resources/**
-      - /auth/v2/api-docs
-      - /auth/v3/api-docs/**
-        - /auth/webjars/**
-        - /auth/favicon.ico
-        
-        # 用户服务文档接口
-        - /users/health
-        - /users/doc.html
-        - /users/doc.html/**
-        - /users/swagger-ui/**
-        - /users/swagger-ui.html
-        - /users/v3/api-docs/**
-        - /users/webjars/**
-        - /users/favicon.ico
 
+# springdoc配置
 springdoc:
   webjars:
+    # 访问前缀
     prefix: /webjars
 
+# 日志配置
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
@@ -192,6 +166,7 @@ logging:
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level [%logger{36}] - %msg%n"
 
+# 监控配置
 management:
   endpoints:
     web:

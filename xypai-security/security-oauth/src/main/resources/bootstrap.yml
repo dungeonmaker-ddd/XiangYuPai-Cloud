@@ -1,38 +1,38 @@
-# 🛡️ XY相遇派安全认证中心配置
-# XV02:07 OAuth2认证服务配置文件
+# Tomcat
+server:
+  port: 9405
 
+# Spring
 spring:
   application:
-    name: security-oauth
+    # 应用名称
+    name: xypai-auth
   profiles:
+    # 环境配置
     active: dev
-  
-  # 🔐 Spring Security 用户配置
-  security:
-    user:
-      name: admin
-      password: '{noop}admin123'
-  
-  # 🌐 Nacos配置中心
   cloud:
     nacos:
       discovery:
+        # 服务注册地址
         server-addr: 127.0.0.1:8848
+        # 用户名
         username: nacos
+        # 密码
         password: nacos
-        namespace: ${spring.profiles.active}
       config:
-        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        # 配置中心地址
+        server-addr: 127.0.0.1:8848
+        # 配置文件格式
         file-extension: yml
+        # 用户名
         username: nacos
+        # 密码
         password: nacos
-        namespace: ${spring.profiles.active}
+        # 共享配置
+        shared-configs:
+          - application-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
 
-# 🔧 服务配置
-server:
-  port: 9401
-
-# 📊 监控配置
+# 监控配置
 management:
   endpoints:
     web:
@@ -42,11 +42,12 @@ management:
     health:
       show-details: always
 
-# 📝 日志配置
+# 日志配置
 logging:
   level:
-    com.xypai.security: DEBUG
-    org.springframework.security: DEBUG
+    com.xypai.auth: DEBUG
+    org.springframework.security: INFO
+    feign: DEBUG
     root: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

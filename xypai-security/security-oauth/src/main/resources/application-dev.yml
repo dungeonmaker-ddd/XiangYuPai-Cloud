@@ -1,26 +1,12 @@
-# 🛡️ XY相遇派安全认证中心 - 开发环境配置
-# XV02:08 开发环境专用配置
-
+# XY相遇派认证微服务 - 开发环境配置
 
 spring:
-  # 🔐 Spring Security 用户配置
-  security:
-    user:
-      name: admin
-      password: '{noop}admin123'
-  # 🗄️ 数据源配置
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/ry-cloud?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
-    username: root
-    password: password
-
-  # 🗄️ Redis配置
+  # Redis配置
   redis:
     host: 127.0.0.1
     port: 6379
     password:
-    database: 1
+    database: 2
     timeout: 6000ms
     lettuce:
       pool:
@@ -29,62 +15,41 @@ spring:
         max-idle: 10
         min-idle: 5
 
-# 🔑 Token配置 - 整合原有TokenConfig
+# JWT配置
 auth:
-  token:
-    # Web端token过期时间（秒）- 2小时
-    web-expire-time: 7200
-    # App端token过期时间（秒）- 24小时  
-    app-expire-time: 86400
-    # 小程序token过期时间（秒）- 24小时
-    mini-expire-time: 86400
-  # JWT配置
   jwt:
-    secret: xypai-security-jwt-secret-key-2025-modern-implementation-64-characters
-    # 访问令牌过期时间（秒）
-    access-token-validity: ${auth.token.app-expire-time}
+    secret: xypai-auth-jwt-secret-key-2025-implementation-64-characters-long
+    # 访问令牌过期时间（秒）- 24小时
+    access-token-validity: 86400
     # 刷新令牌过期时间（秒）- 7天
     refresh-token-validity: 604800
     # JWT签发者
-    issuer: xypai-security-oauth
-    # JWT受众
-    audiences: xypai-client,xypai-web,xypai-app
+    issuer: xypai-auth
 
-# 🔐 OAuth2配置（保持向后兼容）
-oauth2:
-  # JWT密钥
-  jwt:
-    secret: ${auth.jwt.secret}
-    # 访问令牌过期时间（秒）
-    access-token-validity: ${auth.jwt.access-token-validity}
-    # 刷新令牌过期时间（秒）- 7天
-    refresh-token-validity: ${auth.jwt.refresh-token-validity}
-
-# 📊 监控配置
-management:
-  metrics:
-    export:
-      prometheus:
-        enabled: true
-  endpoint:
-    metrics:
+# Feign配置
+feign:
+  client:
+    config:
+      default:
+        connect-timeout: 5000
+        read-timeout: 10000
+        logger-level: basic
+  circuitbreaker:
+    enabled: true
+  compression:
+    request:
+      enabled: true
+    response:
       enabled: true
 
-# 📚 Knife4j 简单配置
+# Knife4j配置
 knife4j:
   enable: true
   production: false
 
-# SpringDoc 配置
+# SpringDoc配置
 springdoc:
   api-docs:
     enabled: true
   swagger-ui:
     enabled: true
-
-# 📝 日志配置
-logging:
-  level:
-    com.xypai.security: DEBUG
-    org.springframework.security.oauth2: DEBUG
-    org.springframework.security.jwt: DEBUG

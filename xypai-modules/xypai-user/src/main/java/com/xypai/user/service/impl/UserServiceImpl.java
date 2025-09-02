@@ -6,12 +6,15 @@ import com.xypai.common.core.exception.ServiceException;
 import com.xypai.common.core.utils.StringUtils;
 import com.xypai.common.core.utils.bean.BeanUtils;
 import com.xypai.common.security.utils.SecurityUtils;
+import com.xypai.user.domain.dto.AutoRegisterDTO;
 import com.xypai.user.domain.dto.UserAddDTO;
 import com.xypai.user.domain.dto.UserQueryDTO;
 import com.xypai.user.domain.dto.UserUpdateDTO;
+import com.xypai.user.domain.dto.UserValidateDTO;
 import com.xypai.user.domain.entity.User;
 import com.xypai.user.domain.entity.UserProfile;
 import com.xypai.user.domain.entity.UserWallet;
+import com.xypai.user.domain.vo.AuthUserVO;
 import com.xypai.user.domain.vo.UserDetailVO;
 import com.xypai.user.domain.vo.UserListVO;
 import com.xypai.user.mapper.UserMapper;
@@ -30,6 +33,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 用户服务实现类
@@ -498,5 +502,193 @@ public class UserServiceImpl implements IUserService {
                 .location(updateDTO.getLocation())
                 .bio(updateDTO.getBio())
                 .build();
+    }
+
+    // ========== 认证服务专用接口实现 ==========
+
+    @Override
+    public AuthUserVO selectAuthUserByUsername(String username) {
+        LambdaQueryWrapper<User> queryWrapper = Wrappers.lambdaQuery(User.class)
+                .eq(User::getUsername, username);
+        User user = userMapper.selectOne(queryWrapper);
+        
+        if (user == null) {
+            return null;
+        }
+
+        return buildAuthUserVO(user);
+    }
+
+    @Override
+    public AuthUserVO selectAuthUserByMobile(String mobile) {
+        LambdaQueryWrapper<User> queryWrapper = Wrappers.lambdaQuery(User.class)
+                .eq(User::getMobile, mobile);
+        User user = userMapper.selectOne(queryWrapper);
+        
+        if (user == null) {
+            return null;
+        }
+
+        return buildAuthUserVO(user);
+    }
+
+    @Override
+    public boolean validateUserPassword(UserValidateDTO validateDTO) {
+        // 1. 获取用户信息
+        User user = null;
+        if (validateDTO.getUsername().matches("^1[3-9]\\d{9}$")) {
+            // 手机号查询
+            LambdaQueryWrapper<User> queryWrapper = Wrappers.lambdaQuery(User.class)
+                    .eq(User::getMobile, validateDTO.getUsername());
+            user = userMapper.selectOne(queryWrapper);
+        } else {
+            // 用户名查询
+            LambdaQueryWrapper<User> queryWrapper = Wrappers.lambdaQuery(User.class)
+                    .eq(User::getUsername, validateDTO.getUsername());
+            user = userMapper.selectOne(queryWrapper);
+        }
+
+        if (user == null) {
+            return false;
+        }
+
+        // 2. 验证密码
+        return passwordEncoder.matches(validateDTO.getPassword(), user.getPassword());
+    }
+
+    @Override
+    public boolean updateLastLoginTime(Long userId) {
+        User updateUser = User.builder()
+                .id(userId)
+                .build();
+        
+        // 这里需要添加最后登录时间字段到User实体
+        // updateUser.setLastLoginTime(LocalDateTime.now());
+        
+        int result = userMapper.updateById(updateUser);
+        return result > 0;
+    }
+
+    /**
+     * 构建认证用户VO
+     */
+    private AuthUserVO buildAuthUserVO(User user) {
+        // 获取用户资料
+        UserProfile profile = userProfileMapper.selectById(user.getId());
+        
+        // 构建基础角色和权限
+        Set<String> roles = Set.of("USER");
+        Set<String> permissions = Set.of("user:read");
+        
+        // 根据用户名判断是否为管理员（简化逻辑）
+        if ("admin".equals(user.getUsername())) {
+            roles = Set.of("ADMIN", "USER");
+            permissions = Set.of("user:read", "user:write", "admin:all", "system:config");
+        }
+
+        return AuthUserVO.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .mobile(user.getMobile())
+                .nickname(profile != null ? profile.getNickname() : user.getUsername())
+                .avatar(profile != null ? profile.getAvatar() : null)
+                .status(user.getStatus())
+                .roles(roles)
+                .permissions(permissions)
+                .lastLoginTime(null) // 需要添加字段
+                .createdAt(user.getCreatedAt())
+                .build();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public AuthUserVO autoRegisterUser(AutoRegisterDTO autoRegisterDTO) {
+        log.info("开始自动注册用户: mobile={}, source={}", autoRegisterDTO.getMobile(), autoRegisterDTO.getSource());
+        
+        try {
+            // 1. 检查手机号是否已存在
+            LambdaQueryWrapper<User> queryWrapper = Wrappers.lambdaQuery(User.class);
+            queryWrapper.eq(User::getMobile, autoRegisterDTO.getMobile());
+            User existingUser = userMapper.selectOne(queryWrapper);
+            
+            if (existingUser != null) {
+                log.warn("用户已存在，返回现有用户信息: mobile={}, userId={}", autoRegisterDTO.getMobile(), existingUser.getId());
+                return buildAuthUserVO(existingUser);
+            }
+
+            // 2. 生成用户名（使用手机号）
+            String username = generateUsernameFromMobile(autoRegisterDTO.getMobile());
+            
+            // 3. 创建用户
+            User user = User.builder()
+                    .username(username)
+                    .mobile(autoRegisterDTO.getMobile())
+                    .password(null) // 短信注册时密码为空，后续可以设置
+                    .status(1) // 正常状态
+                    .build();
+
+            int result = userMapper.insert(user);
+            if (result <= 0) {
+                throw new ServiceException("创建用户失败");
+            }
+
+            // 4. 创建用户资料
+            UserProfile profile = UserProfile.builder()
+                    .userId(user.getId())
+                    .nickname("用户" + user.getId()) // 默认昵称
+                    .avatar(null)
+                    .build();
+
+            userProfileMapper.insert(profile);
+
+            // 5. 创建用户钱包
+            UserWallet wallet = UserWallet.builder()
+                    .userId(user.getId())
+                    .balance(0L) // 初始余额为0分
+                    .build();
+
+            userWalletMapper.insert(wallet);
+
+            log.info("自动注册用户成功: mobile={}, userId={}, username={}", 
+                    autoRegisterDTO.getMobile(), user.getId(), username);
+
+            // 6. 返回认证用户信息
+            return buildAuthUserVO(user);
+
+        } catch (Exception e) {
+            log.error("自动注册用户失败: mobile={}, error={}", autoRegisterDTO.getMobile(), e.getMessage(), e);
+            throw new ServiceException("自动注册失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 根据手机号生成唯一用户名
+     */
+    private String generateUsernameFromMobile(String mobile) {
+        // 基础用户名：手机号
+        String baseUsername = mobile;
+        
+        // 检查是否已存在
+        LambdaQueryWrapper<User> queryWrapper = Wrappers.lambdaQuery(User.class);
+        queryWrapper.eq(User::getUsername, baseUsername);
+        User existingUser = userMapper.selectOne(queryWrapper);
+        
+        if (existingUser == null) {
+            return baseUsername;
+        }
+        
+        // 如果已存在，添加时间戳后缀
+        String timestamp = String.valueOf(System.currentTimeMillis()).substring(7);
+        String uniqueUsername = "u" + mobile + "_" + timestamp;
+        
+        // 再次检查唯一性（理论上不会重复）
+        queryWrapper.clear();
+        queryWrapper.eq(User::getUsername, uniqueUsername);
+        if (userMapper.selectOne(queryWrapper) != null) {
+            // 极端情况，使用UUID
+            uniqueUsername = "u" + mobile + "_" + java.util.UUID.randomUUID().toString().substring(0, 8);
+        }
+        
+        return uniqueUsername;
     }
 }

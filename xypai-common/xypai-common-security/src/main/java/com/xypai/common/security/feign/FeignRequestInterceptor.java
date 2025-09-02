@@ -50,5 +50,8 @@ public class FeignRequestInterceptor implements RequestInterceptor
             // 配置客户端IP
             requestTemplate.header("X-Forwarded-For", IpUtils.getIpAddr());
         }
+        
+        // 配置内部请求标识
+        requestTemplate.header(SecurityConstants.FROM_SOURCE, SecurityConstants.INNER);
     }
 }
